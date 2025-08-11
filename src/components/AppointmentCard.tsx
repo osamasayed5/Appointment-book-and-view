@@ -1,7 +1,25 @@
-import { CheckCircle, Clock, XCircle, Phone, Mail, FileText, Edit2, Trash2, UserCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  Phone,
+  Mail,
+  FileText,
+  Edit2,
+  Trash2,
+  Calendar,
+  MoreVertical,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 interface CustomField {
@@ -13,7 +31,7 @@ interface CustomField {
 }
 
 interface AppointmentCardProps {
-  appointment: any; // Keep as any for flexibility with Supabase data
+  appointment: any;
   onStatusChange?: (id: string, status: string) => void;
   onEdit?: (appointment: any) => void;
   onDelete?: (id: string) => void;
@@ -49,7 +67,7 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
 
   const handleDelete = () => {
     if (onDelete && !isReadOnly) {
-      if (window.confirm(`Are you sure you want to delete the appointment for ${appointment.client_name}?`)) { // Use client_name
+      if (window.confirm(`Are you sure you want to delete the appointment for ${appointment.client_name}?`)) {
         onDelete(appointment.id);
         toast.success("Appointment deleted successfully");
       }
@@ -70,51 +88,88 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
     }));
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div className="flex-1 flex items-start space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold text-xl flex-shrink-0">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 transition-all duration-300 hover:shadow-md w-full space-y-4">
+      
+      {/* Card Header: Avatar, Name, Service, and Actions */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl flex-shrink-0">
             {appointment.client_name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 text-xl leading-tight">{appointment.client_name}</h3>
-            <p className="text-sm text-gray-600 font-medium mt-1">{appointment.service}</p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-sm text-gray-500">
-              <div className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
-                <Clock className="w-3 h-3 mr-1.5" />
-                {appointment.time} ({appointment.duration} min)
-              </div>
-              {appointment.phone && (
-                <div className="flex items-center">
-                  <Phone className="w-3 h-3 mr-1.5" />
-                  {appointment.phone}
-                </div>
-              )}
-              {appointment.email && (
-                <div className="flex items-center">
-                  <Mail className="w-3 h-3 mr-1.5" />
-                  {appointment.email}
-                </div>
-              )}
-            </div>
+            <h3 className="font-bold text-gray-900 text-lg">{appointment.client_name}</h3>
+            <p className="text-sm text-gray-500">{appointment.service}</p>
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0">
-          <Badge className={`${getStatusColor(appointment.status)} border px-3 py-1.5 flex justify-center`}>
+        {!isReadOnly && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem onClick={handleEdit}>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Card Body: Details and Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left side: Details */}
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center text-gray-600">
+            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+            <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <Clock className="w-4 h-4 mr-2 text-gray-400" />
+            <span>{appointment.time} ({appointment.duration} min)</span>
+          </div>
+          {appointment.phone && (
+            <div className="flex items-center text-gray-600">
+              <Phone className="w-4 h-4 mr-2 text-gray-400" />
+              <span>{appointment.phone}</span>
+            </div>
+          )}
+          {appointment.email && (
+            <div className="flex items-center text-gray-600">
+              <Mail className="w-4 h-4 mr-2 text-gray-400" />
+              <span>{appointment.email}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right side: Status */}
+        <div className="flex flex-col items-start md:items-end justify-between space-y-2">
+           <Badge className={`${getStatusColor(appointment.status)} border px-3 py-1.5`}>
             <div className="flex items-center space-x-1.5">
               {getStatusIcon(appointment.status)}
               <span className="capitalize font-medium text-sm">{appointment.status}</span>
             </div>
           </Badge>
-          
           {!isReadOnly && onStatusChange && (
             <Select 
               value={appointment.status} 
               onValueChange={handleStatusChange}
             >
-              <SelectTrigger className="w-full sm:w-32 h-9 text-sm">
-                <SelectValue />
+              <SelectTrigger className="w-full md:w-40 h-9 text-sm">
+                <SelectValue placeholder="Change status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="confirmed">Confirmed</SelectItem>
@@ -123,36 +178,16 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
               </SelectContent>
             </Select>
           )}
-          
-          {!isReadOnly && onEdit && (
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={handleEdit}
-              className="w-full sm:w-9 h-9"
-            >
-              <Edit2 className="w-4 h-4" />
-            </Button>
-          )}
-          
-          {!isReadOnly && onDelete && (
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={handleDelete}
-              className="text-red-600 hover:text-red-700 w-full sm:w-9 h-9"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
         </div>
       </div>
+
+      {/* Card Footer: Notes and Custom Fields */}
       {(appointment.notes || customDataEntries.length > 0) && (
-        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+        <div className="pt-4 border-t border-gray-100 space-y-3">
           {appointment.notes && (
             <div className="text-sm text-gray-700 flex items-start">
               <FileText className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-500" />
-              <p className="text-gray-600">{appointment.notes}</p>
+              <p className="text-gray-600 bg-gray-50 p-2 rounded-md w-full">{appointment.notes}</p>
             </div>
           )}
           {customDataEntries.length > 0 && (
