@@ -4,15 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
+interface CustomField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'boolean';
+  is_required: boolean;
+}
+
 interface AppointmentCardProps {
   appointment: any; // Keep as any for flexibility with Supabase data
   onStatusChange?: (id: string, status: string) => void;
   onEdit?: (appointment: any) => void;
   onDelete?: (id: string) => void;
   isReadOnly?: boolean;
+  customFields: CustomField[];
 }
 
-const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isReadOnly = false }: AppointmentCardProps) => {
+const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isReadOnly = false, customFields }: AppointmentCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800 border-green-200';
@@ -52,6 +61,13 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
       onEdit(appointment);
     }
   };
+
+  const customDataEntries = customFields
+    .filter(field => appointment.custom_data && appointment.custom_data[field.name] != null && appointment.custom_data[field.name] !== '')
+    .map(field => ({
+      label: field.label,
+      value: String(appointment.custom_data[field.name])
+    }));
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full">
@@ -131,10 +147,24 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
           )}
         </div>
       </div>
-      {appointment.notes && (
-        <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-700 flex items-start">
-          <FileText className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
-          <p className="text-gray-600">{appointment.notes}</p>
+      {(appointment.notes || customDataEntries.length > 0) && (
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+          {appointment.notes && (
+            <div className="text-sm text-gray-700 flex items-start">
+              <FileText className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-500" />
+              <p className="text-gray-600">{appointment.notes}</p>
+            </div>
+          )}
+          {customDataEntries.length > 0 && (
+            <div className="space-y-2 text-sm">
+              {customDataEntries.map(entry => (
+                <div key={entry.label} className="flex">
+                  <span className="font-medium text-gray-500 w-28 flex-shrink-0">{entry.label}:</span>
+                  <span className="text-gray-700">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

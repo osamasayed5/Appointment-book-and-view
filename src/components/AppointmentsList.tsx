@@ -21,6 +21,15 @@ interface Appointment {
   email?: string;
   notes?: string;
   created_at: string;
+  custom_data?: any;
+}
+
+interface CustomField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'boolean';
+  is_required: boolean;
 }
 
 interface AppointmentsListProps {
@@ -30,6 +39,7 @@ interface AppointmentsListProps {
   onEdit?: (appointment: any) => void; // Make optional
   onDelete?: (id: string) => void; // Make optional
   isReadOnly?: boolean; // New prop
+  customFields: CustomField[];
 }
 
 const AppointmentsList = ({ 
@@ -38,7 +48,8 @@ const AppointmentsList = ({
   onStatusChange, 
   onEdit, 
   onDelete,
-  isReadOnly = false
+  isReadOnly = false,
+  customFields
 }: AppointmentsListProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const appointmentsPerPage = 5; // Display 5 appointments per page
@@ -83,6 +94,7 @@ const AppointmentsList = ({
                 <AppointmentCard
                   appointment={appointment}
                   isReadOnly={isReadOnly}
+                  customFields={customFields}
                   {...(!isReadOnly && { onStatusChange, onEdit, onDelete })}
                 />
               </div>
