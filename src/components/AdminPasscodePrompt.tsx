@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface AdminPasscodePromptProps {
   onSuccess: () => void;
@@ -13,6 +15,7 @@ interface AdminPasscodePromptProps {
 const AdminPasscodePrompt: React.FC<AdminPasscodePromptProps> = ({ onSuccess, onCancel }) => {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleVerify = () => {
     const expectedPasscode = import.meta.env.VITE_ADMIN_PASSCODE;
@@ -24,6 +27,9 @@ const AdminPasscodePrompt: React.FC<AdminPasscodePromptProps> = ({ onSuccess, on
     }
 
     if (passcode === expectedPasscode) {
+      if (rememberMe) {
+        localStorage.setItem('isAdminVerified', 'true');
+      }
       onSuccess();
       setPasscode('');
       setError(null);
@@ -71,6 +77,10 @@ const AdminPasscodePrompt: React.FC<AdminPasscodePromptProps> = ({ onSuccess, on
                 {error}
               </p>
             )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
+            <Label htmlFor="remember-me">Remember me</Label>
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={onCancel}>

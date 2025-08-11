@@ -274,6 +274,7 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('isAdminVerified');
     toast.info("You have been signed out.");
     setIsAdminPasscodeVerified(false);
   };
@@ -288,11 +289,15 @@ const Index = () => {
 
   const handleToggleAdminPanel = () => {
     if (!showAdminPanel) {
-      setIsAdminPasscodeVerified(false);
+      if (localStorage.getItem('isAdminVerified') === 'true') {
+        setIsAdminPasscodeVerified(true);
+        toast.info("Admin access restored.");
+      } else {
+        setIsAdminPasscodeVerified(false);
+      }
       setShowAdminPanel(true);
     } else {
       setShowAdminPanel(false);
-      setIsAdminPasscodeVerified(false);
     }
   };
 
