@@ -24,6 +24,7 @@ interface CustomField {
   label: string;
   type: 'text' | 'number' | 'date' | 'boolean';
   is_required: boolean;
+  is_visible: boolean;
 }
 
 interface AppointmentFormProps {
@@ -99,7 +100,7 @@ const AppointmentForm = ({
     if (formConfig.require_notes && !formData.notes.trim()) newErrors.notes = "Notes are required";
 
     customFields.forEach(field => {
-      if (field.is_required && (formData.customData[field.name] == null || formData.customData[field.name] === '')) {
+      if (field.is_visible && field.is_required && (formData.customData[field.name] == null || formData.customData[field.name] === '')) {
         newErrors[field.name] = `${field.label} is required.`;
       }
     });
@@ -178,6 +179,8 @@ const AppointmentForm = ({
   };
 
   if (!isOpen) return null;
+
+  const visibleCustomFields = customFields.filter(f => f.is_visible);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
@@ -267,9 +270,9 @@ const AppointmentForm = ({
               </div>
             )}
             
-            {customFields.length > 0 && <Separator />}
+            {visibleCustomFields.length > 0 && <Separator />}
 
-            {customFields.map(field => (
+            {visibleCustomFields.map(field => (
               <div key={field.id}>
                 <Label>{field.label}{field.is_required ? ' *' : ''}</Label>
                 {renderCustomField(field)}

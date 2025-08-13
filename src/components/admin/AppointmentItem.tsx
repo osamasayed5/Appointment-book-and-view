@@ -36,6 +36,7 @@ interface CustomField {
   label: string;
   type: 'text' | 'number' | 'date' | 'boolean';
   is_required: boolean;
+  is_visible: boolean;
 }
 
 interface AppointmentItemProps {
@@ -74,7 +75,7 @@ const AppointmentItem = ({
   };
 
   const customDataEntries = customFields
-    .filter(field => appointment.custom_data && appointment.custom_data[field.name] != null && appointment.custom_data[field.name] !== '')
+    .filter(field => field.is_visible && appointment.custom_data && appointment.custom_data[field.name] != null && appointment.custom_data[field.name] !== '')
     .map(field => ({
       label: field.label,
       value: String(appointment.custom_data[field.name])

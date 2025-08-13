@@ -50,6 +50,7 @@ interface CustomField {
   label: string;
   type: 'text' | 'number' | 'date' | 'boolean';
   is_required: boolean;
+  is_visible: boolean;
 }
 
 interface AdminPanelProps {
