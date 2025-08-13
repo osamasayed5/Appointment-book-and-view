@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import AdminDashboardStats from "./AdminDashboardStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/components/SessionContextProvider";
+import { logActivity } from "@/utils/activityLogger";
 
 // Import modular components
 import AdminHeader from "./admin/AdminHeader";
@@ -16,6 +17,7 @@ import BulkActions from "./admin/BulkActions";
 import AppointmentItem from "./admin/AppointmentItem";
 import AnalyticsCharts from "./admin/AnalyticsCharts";
 import SettingsForm from "./admin/SettingsForm";
+import ActivityLog from "./admin/ActivityLog";
 
 interface Appointment {
   id: string;
@@ -163,6 +165,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
         setSelectedAppointments([]);
         setSelectAll(false);
         toast.success(`${selectedAppointments.length} appointment(s) deleted successfully`);
+        await logActivity(`Bulk deleted ${selectedAppointments.length} appointments`);
       }
     }
   };
@@ -187,6 +190,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       setSelectedAppointments([]);
       setSelectAll(false);
       toast.success(`${selectedAppointments.length} appointment(s) updated to ${status}`);
+      await logActivity(`Bulk changed status to ${status} for ${selectedAppointments.length} appointments`);
     }
   };
 
@@ -282,6 +286,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
 
   const handleDeleteAppointment = async (id: string) => {
     if (!session) return;
+    const appointmentToDelete = appointments.find(app => app.id === id);
     const { error } = await supabase
       .from('appointments')
       .delete()
@@ -293,6 +298,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
     } else {
       onUpdateAppointments(appointments.filter(app => app.id !== id));
       toast.success('Appointment deleted successfully');
+      await logActivity(`Deleted appointment for ${appointmentToDelete?.client_name}`);
     }
   };
 
@@ -317,10 +323,11 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       <AdminDashboardStats appointments={appointments} />
 
       <Tabs defaultValue="appointments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="activity">Activity Log</TabsTrigger>
         </TabsList>
 
         <TabsContent value="appointments" className="space-y-4">
@@ -428,6 +435,9 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
               />
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="activity" className="space-y-4">
+          <ActivityLog />
         </TabsContent>
       </Tabs>
     </div>

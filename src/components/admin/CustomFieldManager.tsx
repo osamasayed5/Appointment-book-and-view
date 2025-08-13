@@ -8,6 +8,7 @@ import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import { logActivity } from '@/utils/activityLogger';
 
 interface CustomField {
   id: string;
@@ -33,28 +34,30 @@ const CustomFieldManager = ({ customFields, onUpdate }: CustomFieldManagerProps)
     }
     setError('');
 
-    // Create a programmatic name from the label
-    const name = newField.label.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const fieldLabel = newField.label.trim();
+    const name = fieldLabel.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 
     const { error: insertError } = await supabase
       .from('custom_fields')
       .insert({
         ...newField,
         name,
-        label: newField.label.trim(),
+        label: fieldLabel,
       });
 
     if (insertError) {
       toast.error(`Failed to add field: ${insertError.message}`);
     } else {
       toast.success('Custom field added successfully!');
+      await logActivity(`Added custom field: ${fieldLabel}`);
       setNewField({ label: '', type: 'text', is_required: false });
       onUpdate();
     }
   };
 
   const handleDeleteField = async (fieldId: string) => {
-    if (window.confirm('Are you sure you want to delete this custom field? This action cannot be undone.')) {
+    const fieldToDelete = customFields.find(f => f.id === fieldId);
+    if (window.confirm(`Are you sure you want to delete the custom field "${fieldToDelete?.label}"? This action cannot be undone.`)) {
       const { error: deleteError } = await supabase
         .from('custom_fields')
         .delete()
@@ -64,6 +67,7 @@ const CustomFieldManager = ({ customFields, onUpdate }: CustomFieldManagerProps)
         toast.error(`Failed to delete field: ${deleteError.message}`);
       } else {
         toast.success('Custom field deleted successfully!');
+        await logActivity(`Deleted custom field: ${fieldToDelete?.label}`);
         onUpdate();
       }
     }

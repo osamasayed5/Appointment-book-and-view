@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, RefreshCw, Calendar, Clock, Users, TrendingUp, Settings } from "lucide-react";
+import { Plus, RefreshCw, Calendar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppointmentForm from "@/components/AppointmentForm";
 import CalendarSidebar from "@/components/CalendarSidebar";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/components/SessionContextProvider";
 import AdminPasscodePrompt from "@/components/AdminPasscodePrompt";
 import { UserNav } from "@/components/UserNav";
+import { logActivity } from "@/utils/activityLogger";
 
 interface Appointment {
   id: string;
@@ -149,6 +150,7 @@ const Index = () => {
     } else {
       setFormConfig(prev => ({ ...prev, ...newConfig }));
       toast.success("Form settings saved!");
+      await logActivity('Updated form settings', newConfig);
     }
   };
 
@@ -177,6 +179,7 @@ const Index = () => {
     } else if (newAppointment && newAppointment.length > 0) {
       setAppointments(prev => [...prev, newAppointment[0] as Appointment]);
       toast.success("Appointment created successfully!");
+      await logActivity(`Created appointment for ${data.clientName}`);
     }
   };
 
@@ -207,6 +210,7 @@ const Index = () => {
         app.id === editingAppointment.id ? updatedAppointment[0] as Appointment : app
       ));
       toast.success("Appointment updated successfully!");
+      await logActivity(`Updated appointment for ${data.clientName}`);
     }
     setEditingAppointment(null);
   };
@@ -255,6 +259,8 @@ const Index = () => {
       if (insertError) {
         console.error("Error adding services:", insertError);
         toast.error("Failed to add new services.");
+      } else {
+        await logActivity('Added services', { services: servicesToAdd });
       }
     }
 
@@ -266,6 +272,8 @@ const Index = () => {
       if (deleteError) {
         console.error("Error deleting services:", deleteError);
         toast.error("Failed to delete services.");
+      } else {
+        await logActivity('Deleted services', { services: servicesToDelete });
       }
     }
     
@@ -382,7 +390,13 @@ const Index = () => {
                 appointments={appointments}
               />
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={handleNewAppointment}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Appointment
+                </Button>
+              </div>
               <AppointmentsList
                 appointments={appointments}
                 selectedDate={selectedDate}
