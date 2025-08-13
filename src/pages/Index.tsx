@@ -350,7 +350,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-                  {showAdminPanel && isAdminPasscodeVerified ? "Admin Panel" : "Appointment Book"}
+                  {showAdminPanel && isAdminPasscodeVerified ? "Admin Panel" : "Life Step Appointment"}
                 </h1>
               </div>
             </div>
@@ -372,7 +372,7 @@ const Index = () => {
               >
                 <Settings className="w-4 h-4 mr-0 sm:mr-2" />
                 <span className="hidden sm:inline">
-                  {showAdminPanel && isAdminPasscodeVerified ? "Back to Book" : "Admin Panel"}
+                  {showAdminPanel && isAdminPasscodeVerified ? "Back to App" : "Admin Panel"}
                 </span>
               </Button>
               <UserNav onSignOut={handleSignOut} />
