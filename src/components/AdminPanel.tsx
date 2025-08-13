@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Calendar, Settings } from "lucide-react";
+import { Calendar, Settings, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,7 @@ import AppointmentItem from "./admin/AppointmentItem";
 import AnalyticsCharts from "./admin/AnalyticsCharts";
 import SettingsForm from "./admin/SettingsForm";
 import ActivityLog from "./admin/ActivityLog";
+import NotificationsTab from "./admin/NotificationsTab";
 
 interface Appointment {
   id: string;
@@ -89,7 +90,6 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appointmentsPerPage = 15;
 
-  // Filter logic remains the same...
   const filteredAppointments = appointments
     .filter(appointment =>
       (searchTerm === "" ||
@@ -334,11 +334,12 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       <AdminDashboardStats appointments={appointments} />
 
       <Tabs defaultValue="appointments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="appointments" className="space-y-4">
@@ -449,6 +450,9 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
         </TabsContent>
         <TabsContent value="activity" className="space-y-4">
           <ActivityLog />
+        </TabsContent>
+        <TabsContent value="notifications" className="space-y-4">
+          <NotificationsTab />
         </TabsContent>
       </Tabs>
     </div>

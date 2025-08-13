@@ -11,6 +11,7 @@ import { useSession } from "@/components/SessionContextProvider";
 import AdminPasscodePrompt from "@/components/AdminPasscodePrompt";
 import { UserNav } from "@/components/UserNav";
 import { logActivity } from "@/utils/activityLogger";
+import Notifications from "@/components/Notifications";
 
 interface Appointment {
   id: string;
@@ -160,6 +161,40 @@ const Index = () => {
     }
   }, [session, fetchAppointments, fetchServices, fetchFormConfig, fetchCustomFields]);
 
+  useEffect(() => {
+    if (!session) return;
+
+    const channel = supabase
+      .channel('public:appointments')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newAppointment = payload.new as Appointment;
+            if (newAppointment.user_id === session.user.id) {
+              toast.success(`A new appointment for ${newAppointment.client_name} has been scheduled.`);
+            }
+            fetchAppointments();
+          } else if (payload.eventType === 'UPDATE') {
+            const oldAppointment = payload.old as Appointment;
+            const newAppointment = payload.new as Appointment;
+            if (newAppointment.user_id === session.user.id && oldAppointment.status !== newAppointment.status) {
+              toast.info(`Appointment for ${newAppointment.client_name} is now ${newAppointment.status}.`);
+            }
+            fetchAppointments();
+          } else if (payload.eventType === 'DELETE') {
+            fetchAppointments();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, fetchAppointments]);
+
   const handleUpdateFormConfig = async (newConfig: Partial<FormConfig>) => {
     const { error } = await supabase
       .from('appointment_form_config')
@@ -177,7 +212,7 @@ const Index = () => {
 
   const handleCreateAppointment = async (data: any) => {
     if (!session) return;
-    const { data: newAppointment, error } = await supabase
+    const { error } = await supabase
       .from('appointments')
       .insert({
         user_id: session.user.id,
@@ -191,23 +226,19 @@ const Index = () => {
         email: data.email || null,
         notes: data.notes || null,
         custom_data: data.customData || null,
-      })
-      .select();
+      });
 
     if (error) {
       console.error("Error creating appointment:", error);
       toast.error("Failed to create appointment.");
-    } else if (newAppointment && newAppointment.length > 0) {
-      setAppointments(prev => [...prev, newAppointment[0] as Appointment]);
-      toast.success("Appointment created successfully!");
-      await logActivity(`Created appointment for ${data.clientName}`);
     }
+    // No success toast here, the real-time listener will handle it.
   };
 
   const handleUpdateAppointment = async (data: any) => {
     if (!editingAppointment || !session) return;
 
-    const { data: updatedAppointment, error } = await supabase
+    const { error } = await supabase
       .from('appointments')
       .update({
         client_name: data.clientName,
@@ -218,20 +249,17 @@ const Index = () => {
         phone: data.phone || null,
         email: data.email || null,
         notes: data.notes || null,
+        status: data.status,
         custom_data: data.customData || null,
       })
-      .eq('id', editingAppointment.id)
-      .select();
+      .eq('id', editingAppointment.id);
 
     if (error) {
       console.error("Error updating appointment:", error);
       toast.error("Failed to update appointment.");
-    } else if (updatedAppointment && updatedAppointment.length > 0) {
-      setAppointments(prev => prev.map(app => 
-        app.id === editingAppointment.id ? updatedAppointment[0] as Appointment : app
-      ));
+    } else {
       toast.success("Appointment updated successfully!");
-      await logActivity(`Updated appointment for ${data.clientName}`);
+      await logActivity(`Updated appointment for ${data.clientName}`, { status: data.status });
     }
     setEditingAppointment(null);
   };
@@ -355,6 +383,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <Notifications />
               <Button 
                 variant="ghost"
                 size="sm"
