@@ -265,10 +265,27 @@ const Index = () => {
       toast.success("Appointment updated successfully!");
       await logActivity(`Updated appointment for ${data.clientName}`, { status: data.status });
       if (statusChanged) {
-        await sendSystemNotification(
-          'Appointment Status Updated',
-          `The status for ${data.clientName}'s appointment on ${data.date} has been changed to ${data.status}.`
-        );
+        let notificationTitle = '';
+        let notificationMessage = '';
+
+        switch (data.status) {
+          case 'confirmed':
+            notificationTitle = 'Appointment Confirmed';
+            notificationMessage = `The appointment for ${data.clientName} on ${data.date} has been confirmed.`;
+            break;
+          case 'cancelled':
+            notificationTitle = 'Appointment Cancelled';
+            notificationMessage = `The appointment for ${data.clientName} on ${data.date} has been cancelled.`;
+            break;
+          case 'pending':
+            notificationTitle = 'Appointment Pending';
+            notificationMessage = `The appointment for ${data.clientName} on ${data.date} is now pending review.`;
+            break;
+        }
+
+        if (notificationTitle && notificationMessage) {
+          await sendSystemNotification(notificationTitle, notificationMessage);
+        }
       }
       // The local toast for status change is handled by the real-time listener
     }
