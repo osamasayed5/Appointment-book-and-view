@@ -42,6 +42,8 @@ interface FormConfig {
   require_email: boolean;
   show_notes: boolean;
   require_notes: boolean;
+  show_duration: boolean;
+  require_duration: boolean;
 }
 
 interface CustomField {
@@ -70,6 +72,8 @@ const Index = () => {
     require_email: false,
     show_notes: true,
     require_notes: false,
+    show_duration: true,
+    require_duration: true,
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
 

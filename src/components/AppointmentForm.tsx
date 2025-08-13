@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Save, AlertCircle, Sparkles } from "lucide-react";
+import { X, Save, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
@@ -16,6 +16,8 @@ interface FormConfig {
   require_email: boolean;
   show_notes: boolean;
   require_notes: boolean;
+  show_duration: boolean;
+  require_duration: boolean;
 }
 
 interface CustomField {
@@ -70,6 +72,32 @@ const AppointmentForm = ({
   const [timeConflict, setTimeConflict] = useState<string | null>(null);
   const [showCustomServiceInput, setShowCustomServiceInput] = useState(false);
   const [saveNewService, setSaveNewService] = useState(false);
+  const [timeParts, setTimeParts] = useState({ hour: '09', minute: '00', ampm: 'AM' });
+
+  const to12h = (time24: string) => {
+    if (!time24) return { hour: '09', minute: '00', ampm: 'AM' };
+    const [h, m] = time24.split(':');
+    const hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    let hour12 = hour % 12;
+    if (hour12 === 0) hour12 = 12;
+    return {
+        hour: String(hour12).padStart(2, '0'),
+        minute: m,
+        ampm: ampm
+    };
+  };
+
+  const to24h = (parts: { hour: string, minute: string, ampm: string }) => {
+      let hour = parseInt(parts.hour, 10);
+      if (parts.ampm === 'PM' && hour < 12) {
+          hour += 12;
+      }
+      if (parts.ampm === 'AM' && hour === 12) {
+          hour = 0;
+      }
+      return `${String(hour).padStart(2, '0')}:${parts.minute}`;
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -84,8 +112,18 @@ const AppointmentForm = ({
       setErrors({});
       setTimeConflict(null);
       setSaveNewService(false);
+      
+      if (initialData?.time) {
+        setTimeParts(to12h(initialData.time));
+      } else {
+        setTimeParts({ hour: '09', minute: '00', ampm: 'AM' });
+      }
     }
   }, [initialData, isOpen, services]);
+
+  useEffect(() => {
+    handleInputChange('time', to24h(timeParts));
+  }, [timeParts]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -95,6 +133,7 @@ const AppointmentForm = ({
     if (!formData.time) newErrors.time = "Time is required";
     if (!formData.date) newErrors.date = "Date is required";
     
+    if (formConfig.require_duration && !formData.duration) newErrors.duration = "Duration is required";
     if (formConfig.require_email && !formData.email.trim()) newErrors.email = "Email is required";
     if (formConfig.require_phone && !formData.phone.trim()) newErrors.phone = "Phone number is required";
     if (formConfig.require_notes && !formData.notes.trim()) newErrors.notes = "Notes are required";
@@ -121,6 +160,7 @@ const AppointmentForm = ({
     });
     if (hasConflict) {
       setTimeConflict("This time slot conflicts with an existing appointment");
+      toast.error("This time slot conflicts with an existing appointment.");
       return true;
     }
     setTimeConflict(null);
@@ -226,25 +266,48 @@ const AppointmentForm = ({
               </div>
               <div>
                 <Label>Time *</Label>
-                <Input type="time" value={formData.time} onChange={(e) => handleInputChange("time", e.target.value)} className={errors.time ? 'border-red-500' : ''} />
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={timeParts.hour} onValueChange={(h) => setTimeParts(p => ({ ...p, hour: h }))}>
+                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                      </SelectContent>
+                  </Select>
+                  <Select value={timeParts.minute} onValueChange={(m) => setTimeParts(p => ({ ...p, minute: m }))}>
+                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                      </SelectContent>
+                  </Select>
+                  <Select value={timeParts.ampm} onValueChange={(a) => setTimeParts(p => ({ ...p, ampm: a }))}>
+                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="AM">AM</SelectItem>
+                          <SelectItem value="PM">PM</SelectItem>
+                      </SelectContent>
+                  </Select>
+                </div>
                 {errors.time && <p className="text-red-600 text-xs mt-1">{errors.time}</p>}
               </div>
             </div>
 
-            <div>
-              <Label>Duration (minutes)</Label>
-              <Select value={String(formData.duration)} onValueChange={(value) => handleInputChange("duration", Number(value))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
-                  <SelectItem value="120">120 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {formConfig.show_duration && (
+              <div>
+                <Label>Duration (minutes) {formConfig.require_duration && '*'}</Label>
+                <Select value={String(formData.duration)} onValueChange={(value) => handleInputChange("duration", Number(value))}>
+                  <SelectTrigger className={errors.duration ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.duration && <p className="text-red-600 text-xs mt-1">{errors.duration}</p>}
+              </div>
+            )}
 
             {formConfig.show_phone && (
               <div>

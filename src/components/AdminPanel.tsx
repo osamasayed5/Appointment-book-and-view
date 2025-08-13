@@ -42,6 +42,8 @@ interface FormConfig {
   require_email: boolean;
   show_notes: boolean;
   require_notes: boolean;
+  show_duration: boolean;
+  require_duration: boolean;
 }
 
 interface CustomField {

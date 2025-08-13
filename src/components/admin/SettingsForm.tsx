@@ -19,6 +19,8 @@ interface FormConfig {
   require_email: boolean;
   show_notes: boolean;
   require_notes: boolean;
+  show_duration: boolean;
+  require_duration: boolean;
 }
 
 interface CustomField {
@@ -53,6 +55,7 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
     if (key === 'show_phone' && !value) newConfig.require_phone = false;
     if (key === 'show_email' && !value) newConfig.require_email = false;
     if (key === 'show_notes' && !value) newConfig.require_notes = false;
+    if (key === 'show_duration' && !value) newConfig.require_duration = false;
     setLocalConfig(newConfig);
   };
 
@@ -122,6 +125,19 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
         <div className="p-4 border rounded-lg space-y-4">
           <h4 className="text-md font-medium text-gray-800">Standard Fields</h4>
           {/* Standard Fields */}
+          <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+            <Label htmlFor="show-duration" className="font-medium">Duration Field</Label>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-duration" checked={localConfig.show_duration} onCheckedChange={(checked) => handleConfigChange('show_duration', checked)} />
+                <Label htmlFor="show-duration">Show</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="require-duration" checked={localConfig.require_duration} onCheckedChange={(checked) => handleConfigChange('require_duration', checked as boolean)} disabled={!localConfig.show_duration} />
+                <Label htmlFor="require-duration" className={!localConfig.show_duration ? 'text-gray-400 cursor-not-allowed' : ''}>Required</Label>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
             <Label htmlFor="show-phone" className="font-medium">Phone Number Field</Label>
             <div className="flex items-center space-x-4">
