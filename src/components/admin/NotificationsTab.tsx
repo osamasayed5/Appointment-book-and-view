@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Send, AlertCircle, History, User, Clock } from 'lucide-react';
+import { Send, AlertCircle, History, User, Clock, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
@@ -103,6 +103,23 @@ const NotificationsTab = () => {
     }
   };
 
+  const handleDeleteNotification = async (notificationId: string, notificationTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete the notification "${notificationTitle}"? This action cannot be undone.`)) {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) {
+        toast.error(`Failed to delete notification: ${error.message}`);
+      } else {
+        toast.success('Notification deleted successfully.');
+        await logActivity('Deleted notification', { title: notificationTitle });
+        fetchHistory(); // Refresh the list
+      }
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       <Card>
@@ -167,7 +184,17 @@ const NotificationsTab = () => {
               ) : (
                 history.map(notification => (
                   <div key={notification.id} className="p-3 border-b last:border-b-0">
-                    <p className="font-semibold text-gray-800">{notification.title}</p>
+                    <div className="flex justify-between items-start">
+                      <p className="font-semibold text-gray-800">{notification.title}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-gray-500 hover:text-red-600"
+                        onClick={() => handleDeleteNotification(notification.id, notification.title)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">{notification.message}</p>
                     <div className="text-xs text-gray-500 flex items-center justify-end space-x-4 mt-2">
                       <div className="flex items-center">
