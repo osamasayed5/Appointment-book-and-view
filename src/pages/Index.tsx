@@ -12,6 +12,7 @@ import AdminPasscodePrompt from "@/components/AdminPasscodePrompt";
 import { UserNav } from "@/components/UserNav";
 import { logActivity } from "@/utils/activityLogger";
 import Notifications from "@/components/Notifications";
+import { sendSystemNotification } from "@/utils/notificationSender";
 
 interface Appointment {
   id: string;
@@ -169,17 +170,7 @@ const Index = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'appointments' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newAppointment = payload.new as Appointment;
-            toast.success(`A new appointment for ${newAppointment.client_name} has been scheduled.`);
-          } else if (payload.eventType === 'UPDATE') {
-            const oldAppointment = payload.old as Appointment;
-            const newAppointment = payload.new as Appointment;
-            if (oldAppointment.status !== newAppointment.status) {
-              toast.info(`Appointment for ${newAppointment.client_name} is now ${newAppointment.status}.`);
-            }
-          }
+        () => {
           fetchAppointments();
         }
       )
@@ -227,13 +218,20 @@ const Index = () => {
       console.error("Error creating appointment:", error);
       toast.error("Failed to create appointment.");
     } else {
+      toast.success(`Appointment for ${data.clientName} has been scheduled.`);
       await logActivity(`Created appointment for ${data.clientName}`);
-      // Toast is handled by the real-time listener
+      await sendSystemNotification(
+        'New Appointment Scheduled',
+        `An appointment for ${data.clientName} on ${data.date} has been added.`
+      );
+      fetchAppointments();
     }
   };
 
   const handleUpdateAppointment = async (data: any) => {
     if (!editingAppointment || !session) return;
+
+    const statusChanged = editingAppointment.status !== data.status;
 
     const { error } = await supabase
       .from('appointments')
@@ -257,7 +255,13 @@ const Index = () => {
     } else {
       toast.success("Appointment updated successfully!");
       await logActivity(`Updated appointment for ${data.clientName}`, { status: data.status });
-      // Status change toast is handled by the real-time listener
+      if (statusChanged) {
+        await sendSystemNotification(
+          'Appointment Status Updated',
+          `The status for ${data.clientName}'s appointment on ${data.date} has been changed to ${data.status}.`
+        );
+      }
+      fetchAppointments();
     }
     setEditingAppointment(null);
   };
