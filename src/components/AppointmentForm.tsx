@@ -18,6 +18,14 @@ interface FormConfig {
   require_notes: boolean;
   show_duration: boolean;
   require_duration: boolean;
+  show_client_name: boolean;
+  require_client_name: boolean;
+  show_service: boolean;
+  require_service: boolean;
+  show_date: boolean;
+  require_date: boolean;
+  show_time: boolean;
+  require_time: boolean;
 }
 
 interface CustomField {
@@ -127,11 +135,11 @@ const AppointmentForm = ({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.clientName.trim()) newErrors.clientName = "Client name is required";
-    if (!formData.service) newErrors.service = "Service selection is required";
-    else if (formData.service === "Other" && !formData.customService.trim()) newErrors.customService = "Custom service name is required";
-    if (!formData.time) newErrors.time = "Time is required";
-    if (!formData.date) newErrors.date = "Date is required";
+    if (formConfig.require_client_name && !formData.clientName.trim()) newErrors.clientName = "Client name is required";
+    if (formConfig.require_service && !formData.service) newErrors.service = "Service selection is required";
+    else if (formConfig.require_service && formData.service === "Other" && !formData.customService.trim()) newErrors.customService = "Custom service name is required";
+    if (formConfig.require_time && !formData.time) newErrors.time = "Time is required";
+    if (formConfig.require_date && !formData.date) newErrors.date = "Date is required";
     
     if (formConfig.require_duration && !formData.duration) newErrors.duration = "Duration is required";
     if (formConfig.require_email && !formData.email.trim()) newErrors.email = "Email is required";
@@ -232,63 +240,71 @@ const AppointmentForm = ({
           </div>
           
           <div className="space-y-6">
-            <div>
-              <Label>Client Name *</Label>
-              <Input value={formData.clientName} onChange={(e) => handleInputChange("clientName", e.target.value)} className={errors.clientName ? 'border-red-500' : ''} />
-              {errors.clientName && <p className="text-red-600 text-xs mt-1">{errors.clientName}</p>}
-            </div>
-
-            <div>
-              <Label>Service *</Label>
-              <Select value={formData.service} onValueChange={handleServiceChange}>
-                <SelectTrigger className={errors.service ? 'border-red-500' : ''}><SelectValue placeholder="Select a service" /></SelectTrigger>
-                <SelectContent>
-                  {services.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  <SelectItem value="Other">Other (Specify)</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.service && <p className="text-red-600 text-xs mt-1">{errors.service}</p>}
-            </div>
-
-            {showCustomServiceInput && (
+            {formConfig.show_client_name && (
               <div>
-                <Label>Custom Service Name *</Label>
+                <Label>Client Name {formConfig.require_client_name && '*'}</Label>
+                <Input value={formData.clientName} onChange={(e) => handleInputChange("clientName", e.target.value)} className={errors.clientName ? 'border-red-500' : ''} />
+                {errors.clientName && <p className="text-red-600 text-xs mt-1">{errors.clientName}</p>}
+              </div>
+            )}
+
+            {formConfig.show_service && (
+              <div>
+                <Label>Service {formConfig.require_service && '*'}</Label>
+                <Select value={formData.service} onValueChange={handleServiceChange}>
+                  <SelectTrigger className={errors.service ? 'border-red-500' : ''}><SelectValue placeholder="Select a service" /></SelectTrigger>
+                  <SelectContent>
+                    {services.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    <SelectItem value="Other">Other (Specify)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.service && <p className="text-red-600 text-xs mt-1">{errors.service}</p>}
+              </div>
+            )}
+
+            {formConfig.show_service && showCustomServiceInput && (
+              <div>
+                <Label>Custom Service Name {formConfig.require_service && '*'}</Label>
                 <Input value={formData.customService} onChange={(e) => handleInputChange("customService", e.target.value)} className={errors.customService ? 'border-red-500' : ''} />
                 {errors.customService && <p className="text-red-600 text-xs mt-1">{errors.customService}</p>}
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Date *</Label>
-                <Input type="date" value={formData.date} onChange={(e) => handleInputChange("date", e.target.value)} className={errors.date ? 'border-red-500' : ''} />
-                {errors.date && <p className="text-red-600 text-xs mt-1">{errors.date}</p>}
-              </div>
-              <div>
-                <Label>Time *</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Select value={timeParts.hour} onValueChange={(h) => setTimeParts(p => ({ ...p, hour: h }))}>
-                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
-                      </SelectContent>
-                  </Select>
-                  <Select value={timeParts.minute} onValueChange={(m) => setTimeParts(p => ({ ...p, minute: m }))}>
-                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                      </SelectContent>
-                  </Select>
-                  <Select value={timeParts.ampm} onValueChange={(a) => setTimeParts(p => ({ ...p, ampm: a }))}>
-                      <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="AM">AM</SelectItem>
-                          <SelectItem value="PM">PM</SelectItem>
-                      </SelectContent>
-                  </Select>
+              {formConfig.show_date && (
+                <div>
+                  <Label>Date {formConfig.require_date && '*'}</Label>
+                  <Input type="date" value={formData.date} onChange={(e) => handleInputChange("date", e.target.value)} className={errors.date ? 'border-red-500' : ''} />
+                  {errors.date && <p className="text-red-600 text-xs mt-1">{errors.date}</p>}
                 </div>
-                {errors.time && <p className="text-red-600 text-xs mt-1">{errors.time}</p>}
-              </div>
+              )}
+              {formConfig.show_time && (
+                <div>
+                  <Label>Time {formConfig.require_time && '*'}</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Select value={timeParts.hour} onValueChange={(h) => setTimeParts(p => ({ ...p, hour: h }))}>
+                        <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={timeParts.minute} onValueChange={(m) => setTimeParts(p => ({ ...p, minute: m }))}>
+                        <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={timeParts.ampm} onValueChange={(a) => setTimeParts(p => ({ ...p, ampm: a }))}>
+                        <SelectTrigger className={errors.time ? 'border-red-500' : ''}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                        </SelectContent>
+                    </Select>
+                  </div>
+                  {errors.time && <p className="text-red-600 text-xs mt-1">{errors.time}</p>}
+                </div>
+              )}
             </div>
 
             {formConfig.show_duration && (

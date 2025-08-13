@@ -44,6 +44,14 @@ interface FormConfig {
   require_notes: boolean;
   show_duration: boolean;
   require_duration: boolean;
+  show_client_name: boolean;
+  require_client_name: boolean;
+  show_service: boolean;
+  require_service: boolean;
+  show_date: boolean;
+  require_date: boolean;
+  show_time: boolean;
+  require_time: boolean;
 }
 
 interface CustomField {
@@ -74,6 +82,14 @@ const Index = () => {
     require_notes: false,
     show_duration: true,
     require_duration: true,
+    show_client_name: true,
+    require_client_name: true,
+    show_service: true,
+    require_service: true,
+    show_date: true,
+    require_date: true,
+    show_time: true,
+    require_time: true,
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
 

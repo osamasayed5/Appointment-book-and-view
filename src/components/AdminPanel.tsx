@@ -44,6 +44,14 @@ interface FormConfig {
   require_notes: boolean;
   show_duration: boolean;
   require_duration: boolean;
+  show_client_name: boolean;
+  require_client_name: boolean;
+  show_service: boolean;
+  require_service: boolean;
+  show_date: boolean;
+  require_date: boolean;
+  show_time: boolean;
+  require_time: boolean;
 }
 
 interface CustomField {

@@ -21,6 +21,14 @@ interface FormConfig {
   require_notes: boolean;
   show_duration: boolean;
   require_duration: boolean;
+  show_client_name: boolean;
+  require_client_name: boolean;
+  show_service: boolean;
+  require_service: boolean;
+  show_date: boolean;
+  require_date: boolean;
+  show_time: boolean;
+  require_time: boolean;
 }
 
 interface CustomField {
@@ -52,10 +60,14 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
 
   const handleConfigChange = (key: keyof FormConfig, value: boolean) => {
     const newConfig = { ...localConfig, [key]: value };
+    if (key === 'show_client_name' && !value) newConfig.require_client_name = false;
+    if (key === 'show_service' && !value) newConfig.require_service = false;
+    if (key === 'show_date' && !value) newConfig.require_date = false;
+    if (key === 'show_time' && !value) newConfig.require_time = false;
+    if (key === 'show_duration' && !value) newConfig.require_duration = false;
     if (key === 'show_phone' && !value) newConfig.require_phone = false;
     if (key === 'show_email' && !value) newConfig.require_email = false;
     if (key === 'show_notes' && !value) newConfig.require_notes = false;
-    if (key === 'show_duration' && !value) newConfig.require_duration = false;
     setLocalConfig(newConfig);
   };
 
@@ -125,6 +137,58 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
         <div className="p-4 border rounded-lg space-y-4">
           <h4 className="text-md font-medium text-gray-800">Standard Fields</h4>
           {/* Standard Fields */}
+          <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+            <Label htmlFor="show-client-name" className="font-medium">Client Name Field</Label>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-client-name" checked={localConfig.show_client_name} onCheckedChange={(checked) => handleConfigChange('show_client_name', checked)} />
+                <Label htmlFor="show-client-name">Show</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="require-client-name" checked={localConfig.require_client_name} onCheckedChange={(checked) => handleConfigChange('require_client_name', checked as boolean)} disabled={!localConfig.show_client_name} />
+                <Label htmlFor="require-client-name" className={!localConfig.show_client_name ? 'text-gray-400 cursor-not-allowed' : ''}>Required</Label>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+            <Label htmlFor="show-service" className="font-medium">Service Field</Label>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-service" checked={localConfig.show_service} onCheckedChange={(checked) => handleConfigChange('show_service', checked)} />
+                <Label htmlFor="show-service">Show</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="require-service" checked={localConfig.require_service} onCheckedChange={(checked) => handleConfigChange('require_service', checked as boolean)} disabled={!localConfig.show_service} />
+                <Label htmlFor="require-service" className={!localConfig.show_service ? 'text-gray-400 cursor-not-allowed' : ''}>Required</Label>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+            <Label htmlFor="show-date" className="font-medium">Date Field</Label>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-date" checked={localConfig.show_date} onCheckedChange={(checked) => handleConfigChange('show_date', checked)} />
+                <Label htmlFor="show-date">Show</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="require-date" checked={localConfig.require_date} onCheckedChange={(checked) => handleConfigChange('require_date', checked as boolean)} disabled={!localConfig.show_date} />
+                <Label htmlFor="require-date" className={!localConfig.show_date ? 'text-gray-400 cursor-not-allowed' : ''}>Required</Label>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+            <Label htmlFor="show-time" className="font-medium">Time Field</Label>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-time" checked={localConfig.show_time} onCheckedChange={(checked) => handleConfigChange('show_time', checked)} />
+                <Label htmlFor="show-time">Show</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="require-time" checked={localConfig.require_time} onCheckedChange={(checked) => handleConfigChange('require_time', checked as boolean)} disabled={!localConfig.show_time} />
+                <Label htmlFor="require-time" className={!localConfig.show_time ? 'text-gray-400 cursor-not-allowed' : ''}>Required</Label>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
             <Label htmlFor="show-duration" className="font-medium">Duration Field</Label>
             <div className="flex items-center space-x-4">
