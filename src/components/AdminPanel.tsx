@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import AppointmentDetails from "./AppointmentDetails";
+import { Appointment, FormConfig, CustomField } from "@/types";
 
 // Import modular components
 import AdminHeader from "./admin/AdminHeader";
@@ -23,50 +24,6 @@ import AnalyticsCharts from "./admin/AnalyticsCharts";
 import SettingsForm from "./admin/SettingsForm";
 import ActivityLog from "./admin/ActivityLog";
 import NotificationsTab from "./admin/NotificationsTab";
-
-interface Appointment {
-  id: string;
-  user_id: string;
-  client_name: string;
-  service: string;
-  date: string;
-  time: string;
-  status: "confirmed" | "pending" | "cancelled";
-  duration: number;
-  phone?: string;
-  email?: string;
-  notes?: string;
-  created_at: string;
-  custom_data?: any;
-}
-
-interface FormConfig {
-  show_phone: boolean;
-  require_phone: boolean;
-  show_email: boolean;
-  require_email: boolean;
-  show_notes: boolean;
-  require_notes: boolean;
-  show_duration: boolean;
-  require_duration: boolean;
-  show_client_name: boolean;
-  require_client_name: boolean;
-  show_service: boolean;
-  require_service: boolean;
-  show_date: boolean;
-  require_date: boolean;
-  show_time: boolean;
-  require_time: boolean;
-}
-
-interface CustomField {
-  id: string;
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
-  is_required: boolean;
-  is_visible: boolean;
-}
 
 interface AdminPanelProps {
   appointments: Appointment[];

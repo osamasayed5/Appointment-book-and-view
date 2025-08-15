@@ -65,7 +65,7 @@ const NotificationsTab = () => {
 
   const fetchAppointments = async () => {
     setLoadingAppointments(true);
-    const { data, error } = await supabase.from('appointments').select('*').order('date', { descending: true });
+    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: false });
     if (error) {
       toast.error('Failed to load appointments.');
     } else {

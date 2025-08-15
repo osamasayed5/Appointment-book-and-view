@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const sendSystemNotification = async (title: string, message: string) => {
+export const sendSystemNotification = async (title: string, message: string, senderEmail: string = 'System') => {
   try {
     // 1. Get all user profiles to send them a notification
     const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id');
@@ -17,7 +17,7 @@ export const sendSystemNotification = async (title: string, message: string) => 
       .insert({
         title,
         message,
-        sender_email: 'System', // Mark as a system notification
+        sender_email: senderEmail, // Mark as a system notification
       })
       .select()
       .single();
