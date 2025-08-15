@@ -11,36 +11,9 @@ import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logActivity } from '@/utils/activityLogger';
+import { FormConfig, CustomField } from "@/types";
 
-interface FormConfig {
-  show_phone: boolean;
-  require_phone: boolean;
-  show_email: boolean;
-  require_email: boolean;
-  show_notes: boolean;
-  require_notes: boolean;
-  show_duration: boolean;
-  require_duration: boolean;
-  show_client_name: boolean;
-  require_client_name: boolean;
-  show_service: boolean;
-  require_service: boolean;
-  show_date: boolean;
-  require_date: boolean;
-  show_time: boolean;
-  require_time: boolean;
-}
-
-interface CustomField {
-  id: string;
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
-  is_required: boolean;
-  is_visible: boolean;
-}
-
-interface SettingsFormProps {
+interface SettingsTabProps {
   services: string[];
   onUpdateServices: (newServices: string[]) => void;
   formConfig: FormConfig;
@@ -49,7 +22,7 @@ interface SettingsFormProps {
   onUpdateCustomFields: () => void;
 }
 
-const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConfig, customFields, onUpdateCustomFields }: SettingsFormProps) => {
+const SettingsTab = ({ services, onUpdateServices, formConfig, onUpdateFormConfig, customFields, onUpdateCustomFields }: SettingsTabProps) => {
   const [localConfig, setLocalConfig] = useState(formConfig);
   const [newField, setNewField] = useState({ label: '', type: 'text' as const, is_required: false, is_visible: true });
   const [error, setError] = useState('');
@@ -327,4 +300,4 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
   );
 };
 
-export default SettingsForm;
+export default SettingsTab;

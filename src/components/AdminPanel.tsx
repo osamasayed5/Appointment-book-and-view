@@ -3,7 +3,7 @@ import AppointmentsTab from "./admin/AppointmentsTab";
 import AnalyticsTab from "./admin/AnalyticsTab";
 import SettingsTab from "./admin/SettingsTab";
 import NotificationsTab from "./admin/NotificationsTab";
-import ActivityLogTab from "./admin/ActivityLogTab";
+import ActivityLog from "./admin/ActivityLog";
 import { Appointment, FormConfig, CustomField } from "@/types";
 
 interface AdminPanelProps {
@@ -47,6 +47,7 @@ const AdminPanel = ({
             onUpdateAppointments={onUpdateAppointments}
             onNewAppointmentClick={onNewAppointmentClick}
             onEditAppointmentClick={onEditAppointmentClick}
+            customFields={customFields}
           />
         </TabsContent>
         <TabsContent value="analytics">
@@ -66,7 +67,7 @@ const AdminPanel = ({
           <NotificationsTab />
         </TabsContent>
         <TabsContent value="activity">
-          <ActivityLogTab />
+          <ActivityLog />
         </TabsContent>
       </Tabs>
     </div>
