@@ -91,6 +91,7 @@ export const useAppointments = () => {
         'New Appointment Scheduled',
         `An appointment for ${data.clientName} on ${data.date} has been added.`
       );
+      fetchAppointments(); // Manually refresh the list
     }
   };
 
