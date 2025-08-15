@@ -1,22 +1,14 @@
-import { useState } from "react";
 import { 
   Calendar, 
   ChevronLeft, 
   ChevronRight, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
-  Plus,
-  TrendingUp,
-  Users,
-  Sparkles
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface Appointment {
   id: string;
-  client_name: string; // Changed to client_name
+  client_name: string;
   service: string;
   date: string;
   time: string;
@@ -30,7 +22,7 @@ interface Appointment {
 interface CalendarSidebarProps {
   selectedDate: string;
   onDateChange: (date: string) => void;
-  appointments: Appointment[]; // Use Appointment interface
+  appointments: Appointment[];
 }
 
 const CalendarSidebar = ({ 
@@ -40,6 +32,7 @@ const CalendarSidebar = ({
 }: CalendarSidebarProps) => {
   const navigateDate = (direction: 'prev' | 'next') => {
     const currentDate = new Date(selectedDate);
+    currentDate.setMinutes(currentDate.getMinutes() + currentDate.getTimezoneOffset());
     if (direction === 'prev') {
       currentDate.setDate(currentDate.getDate() - 1);
     } else {
@@ -56,9 +49,22 @@ const CalendarSidebar = ({
     return date === getTodayDate();
   };
 
-  const isPastDate = (date: string) => {
-    return new Date(date) < new Date(getTodayDate());
-  };
+  // Calendar grid generation
+  const currentDateObj = new Date(selectedDate);
+  currentDateObj.setMinutes(currentDateObj.getMinutes() + currentDateObj.getTimezoneOffset());
+  const year = currentDateObj.getFullYear();
+  const month = currentDateObj.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const calendarGrid = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    calendarGrid.push(null);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    calendarGrid.push(i);
+  }
 
   return (
     <div className="space-y-6">
@@ -80,8 +86,8 @@ const CalendarSidebar = ({
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <h3 className="text-lg font-medium text-gray-900">
-                {new Date(selectedDate).toLocaleDateString('en-US', { 
+              <h3 className="text-lg font-medium text-gray-900 text-center px-2">
+                {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
@@ -104,33 +110,38 @@ const CalendarSidebar = ({
                 </div>
               ))}
               
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                const date = new Date(selectedDate);
-                date.setDate(day);
+              {calendarGrid.map((day, index) => {
+                if (day === null) {
+                  return <div key={`empty-${index}`} />;
+                }
+
+                const date = new Date(year, month, day);
                 const dateStr = date.toISOString().split('T')[0];
-                const hasAppointments = appointments.some(app => app.date === dateStr);
+                
+                const appointmentCount = appointments.filter(app => app.date === dateStr).length;
                 const isCurrentDate = dateStr === selectedDate;
                 const isTodayDate = isToday(dateStr);
-                const isPast = isPastDate(dateStr);
                 
                 return (
                   <button
                     key={day}
-                    onClick={() => !isPast && onDateChange(dateStr)}
-                    disabled={isPast}
-                    className={`p-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                    onClick={() => onDateChange(dateStr)}
+                    className={`relative p-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center justify-center aspect-square ${
                       isCurrentDate
                         ? 'bg-blue-600 text-white'
                         : isTodayDate
                         ? 'bg-blue-100 text-blue-700 font-bold'
-                        : hasAppointments
-                        ? 'bg-green-100 text-green-700'
-                        : isPast
-                        ? 'text-gray-400 cursor-not-allowed'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     {day}
+                    {appointmentCount > 0 && (
+                      <span className={`absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
+                        isCurrentDate ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
+                      }`}>
+                        {appointmentCount}
+                      </span>
+                    )}
                   </button>
                 );
               })}
