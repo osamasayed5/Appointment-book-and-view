@@ -34,7 +34,7 @@ const AdminPanel = ({
   return (
     <div className="animate-fadeIn">
       <Tabs defaultValue="appointments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+        <TabsList className="w-full justify-start overflow-x-auto sm:justify-center">
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
