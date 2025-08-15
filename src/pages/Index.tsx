@@ -229,7 +229,6 @@ const Index = () => {
               <AppointmentsList
                 appointments={appointments}
                 selectedDate={selectedDate}
-                isReadOnly={true}
                 customFields={customFields}
               />
             </div>
