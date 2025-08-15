@@ -334,7 +334,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       <AdminDashboardStats appointments={appointments} />
 
       <Tabs defaultValue="appointments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
