@@ -31,14 +31,23 @@ const CalendarSidebar = ({
   appointments, 
 }: CalendarSidebarProps) => {
   const navigateDate = (direction: 'prev' | 'next') => {
-    const currentDate = new Date(selectedDate);
-    currentDate.setMinutes(currentDate.getMinutes() + currentDate.getTimezoneOffset());
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    // Create a date in local time to avoid UTC conversion issues.
+    // Note: month is 0-indexed for the Date constructor.
+    const currentDate = new Date(year, month - 1, day);
+
     if (direction === 'prev') {
       currentDate.setDate(currentDate.getDate() - 1);
     } else {
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    onDateChange(currentDate.toISOString().split('T')[0]);
+
+    // Format the new date back to 'YYYY-MM-DD' string manually
+    const newYear = currentDate.getFullYear();
+    const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const newDay = String(currentDate.getDate()).padStart(2, '0');
+    
+    onDateChange(`${newYear}-${newMonth}-${newDay}`);
   };
 
   const getTodayDate = () => {
