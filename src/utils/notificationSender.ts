@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// This function sends both an in-app notification and a push notification
 export const sendSystemNotification = async (title: string, message: string, senderEmail: string = 'System') => {
   try {
     // 1. Get all user profiles to send them a notification
@@ -11,19 +12,19 @@ export const sendSystemNotification = async (title: string, message: string, sen
       return;
     }
 
-    // 2. Insert the main notification message
+    // 2. Insert the main notification message for the in-app feed
     const { data: notification, error: notificationError } = await supabase
       .from('notifications')
       .insert({
         title,
         message,
-        sender_email: senderEmail, // Mark as a system notification
+        sender_email: senderEmail,
       })
       .select()
       .single();
     if (notificationError) throw notificationError;
 
-    // 3. Create a user_notification entry for each user to link them to the message
+    // 3. Create user_notification entries for each user
     const userNotifications = profiles.map(profile => ({
       notification_id: notification.id,
       user_id: profile.id,
@@ -35,9 +36,16 @@ export const sendSystemNotification = async (title: string, message: string, sen
       .insert(userNotifications);
     if (userNotificationsError) throw userNotificationsError;
 
+    // 4. Trigger a push notification for each user via the Edge Function
+    const pushPayload = { title, body: message };
+    for (const profile of profiles) {
+      await supabase.functions.invoke('send-push-notification', {
+        body: { user_id: profile.id, payload: pushPayload },
+      });
+    }
+
   } catch (err: any) {
     console.error('Error sending system notification:', err);
-    // Show an error to the admin performing the action, but don't block the main action
     toast.error(`Failed to send system notification: ${err.message}`);
   }
 };
