@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { Plus, RefreshCw, Calendar, Settings } from "lucide-react";
+import { Plus, RefreshCw, Calendar, Settings, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import AppointmentForm from "@/components/AppointmentForm";
 import CalendarSidebar from "@/components/CalendarSidebar";
 import AppointmentsList from "@/components/AppointmentsList";
@@ -106,19 +112,20 @@ const Index = () => {
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                   {showAdminPanel && isAdminPasscodeVerified ? "Admin Panel" : "Life Step Appointment"}
                 </h1>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
+
+            {/* Desktop Header Actions */}
+            <div className="hidden sm:flex items-center space-x-4">
               <Notifications />
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="hidden sm:inline-flex"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -128,12 +135,35 @@ const Index = () => {
                 size="sm"
                 onClick={handleToggleAdminPanel}
               >
-                <Settings className="w-4 h-4 mr-0 sm:mr-2" />
-                <span className="hidden sm:inline">
+                <Settings className="w-4 h-4 mr-2" />
+                <span>
                   {showAdminPanel && isAdminPasscodeVerified ? "Back to App" : "Admin Panel"}
                 </span>
               </Button>
               <UserNav onSignOut={handleSignOut} />
+            </div>
+
+            {/* Mobile Header Actions */}
+            <div className="flex sm:hidden items-center space-x-2">
+              <Notifications />
+              <UserNav onSignOut={handleSignOut} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleRefresh} disabled={isRefreshing}>
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleToggleAdminPanel}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    <span>{showAdminPanel && isAdminPasscodeVerified ? "Back to App" : "Admin Panel"}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
