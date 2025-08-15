@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Plus, RefreshCw, Calendar, Settings, MoreVertical } from "lucide-react";
+import { Plus, RefreshCw, Calendar, Settings, MoreVertical, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AppointmentForm from "@/components/AppointmentForm";
@@ -24,7 +26,7 @@ import { useCustomFields } from "@/hooks/useCustomFields";
 import { Appointment } from "@/types";
 
 const Index = () => {
-  const { isLoading: isSessionLoading } = useSession();
+  const { session, isLoading: isSessionLoading } = useSession();
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointment, updateAppointment, setAppointments } = useAppointments();
   const { services, updateServices, fetchServices } = useServices();
   const { formConfig, updateFormConfig, fetchFormConfig } = useFormConfig();
@@ -151,7 +153,6 @@ const Index = () => {
             {/* Mobile Header Actions */}
             <div className="flex sm:hidden items-center space-x-2">
               <Notifications />
-              <UserNav onSignOut={handleSignOut} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -166,6 +167,20 @@ const Index = () => {
                   <DropdownMenuItem onClick={handleToggleAdminPanel}>
                     <Settings className="w-4 h-4 mr-2" />
                     <span>{showAdminPanel && isAdminPasscodeVerified ? "Back to App" : "Admin Panel"}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">Logged in as</p>
+                      <p className="text-xs leading-none text-muted-foreground truncate">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
