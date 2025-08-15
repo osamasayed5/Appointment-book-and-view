@@ -74,11 +74,11 @@ const AppointmentItem = ({
         onClick={() => onViewDetails(appointment)}
       >
         {/* Client Info */}
-        <div className="flex items-center space-x-3 col-span-2 sm:col-span-1">
+        <div className="flex items-center space-x-3 col-span-2 sm:col-span-1 min-w-0">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold flex-shrink-0">
             {appointment.client_name.charAt(0).toUpperCase()}
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-medium text-gray-900 truncate">{appointment.client_name}</h3>
             <p className="text-sm text-gray-600 truncate">{appointment.service}</p>
           </div>
