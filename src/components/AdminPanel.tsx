@@ -11,6 +11,8 @@ import { useSession } from "@/components/SessionContextProvider";
 import { logActivity } from "@/utils/activityLogger";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import AppointmentDetails from "./AppointmentDetails";
 
 // Import modular components
 import AdminHeader from "./admin/AdminHeader";
@@ -93,6 +95,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
   const appointmentsPerPage = 15;
   const [activeTab, setActiveTab] = useState("appointments");
   const isMobile = useIsMobile();
+  const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
 
   const filteredAppointments = appointments
     .filter(appointment =>
@@ -321,6 +324,14 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
     // ... clear all logic
   };
 
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointmentDetails(appointment);
+  };
+
+  const handleSheetClose = () => {
+    setSelectedAppointmentDetails(null);
+  };
+
   return (
     <div className="space-y-6">
       <AdminHeader
@@ -405,7 +416,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
                       onSelect={(checked) => handleSelectAppointment(appointment.id, checked as boolean)}
                       onEdit={onEditAppointmentClick}
                       onDelete={handleDeleteAppointment}
-                      customFields={customFields}
+                      onViewDetails={handleViewDetails}
                     />
                   ))}
                 </div>
@@ -474,6 +485,25 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
           <NotificationsTab />
         </TabsContent>
       </Tabs>
+
+      <Sheet open={!!selectedAppointmentDetails} onOpenChange={(isOpen) => !isOpen && handleSheetClose()}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {selectedAppointmentDetails && (
+            <>
+              <SheetHeader>
+                <SheetTitle>Appointment Details</SheetTitle>
+                <SheetDescription>
+                  Full details for the selected appointment.
+                </SheetDescription>
+              </SheetHeader>
+              <AppointmentDetails 
+                appointment={selectedAppointmentDetails} 
+                customFields={customFields} 
+              />
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
