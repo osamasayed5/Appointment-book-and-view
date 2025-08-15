@@ -65,7 +65,7 @@ const NotificationsTab = () => {
 
   const fetchAppointments = async () => {
     setLoadingAppointments(true);
-    const { data, error } = await supabase.from('appointments').select('*').order('date', { descending: true });
+    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: false });
     if (error) {
       toast.error('Failed to load appointments.');
     } else {
@@ -92,7 +92,7 @@ const NotificationsTab = () => {
     setIsSendingBroadcast(true);
 
     try {
-      await sendSystemNotification(title, message, session.user.email || 'Admin');
+      await sendSystemNotification(title, message);
       toast.success('Notification sent to all users!');
       await logActivity('Sent broadcast notification', { title });
       setTitle('');
