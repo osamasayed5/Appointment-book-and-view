@@ -9,6 +9,8 @@ import AdminDashboardStats from "./AdminDashboardStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/components/SessionContextProvider";
 import { logActivity } from "@/utils/activityLogger";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Import modular components
 import AdminHeader from "./admin/AdminHeader";
@@ -89,6 +91,8 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appointmentsPerPage = 15;
+  const [activeTab, setActiveTab] = useState("appointments");
+  const isMobile = useIsMobile();
 
   const filteredAppointments = appointments
     .filter(appointment =>
@@ -333,14 +337,29 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
 
       <AdminDashboardStats appointments={appointments} />
 
-      <Tabs defaultValue="appointments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="activity">Activity Log</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        {isMobile ? (
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a section" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="appointments">Appointments</SelectItem>
+              <SelectItem value="analytics">Analytics</SelectItem>
+              <SelectItem value="settings">Settings</SelectItem>
+              <SelectItem value="activity">Activity Log</SelectItem>
+              <SelectItem value="notifications">Notifications</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="activity">Activity Log</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          </TabsList>
+        )}
 
         <TabsContent value="appointments" className="space-y-4">
           <AppointmentFilters
