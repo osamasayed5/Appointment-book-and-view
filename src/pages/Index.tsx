@@ -23,7 +23,6 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useServices } from "@/hooks/useServices";
 import { useFormConfig } from "@/hooks/useFormConfig";
 import { useCustomFields } from "@/hooks/useCustomFields";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Appointment } from "@/types";
 
 const Index = () => {
@@ -32,9 +31,6 @@ const Index = () => {
   const { services, updateServices, fetchServices } = useServices();
   const { formConfig, updateFormConfig, fetchFormConfig } = useFormConfig();
   const { customFields, fetchCustomFields } = useCustomFields();
-  
-  // Initialize push notifications
-  usePushNotifications();
 
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showForm, setShowForm] = useState<boolean>(false);
