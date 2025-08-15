@@ -113,7 +113,12 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
-                  {showAdminPanel && isAdminPasscodeVerified ? "Admin Panel" : "Life Step Appointment"}
+                  <span className="sm:hidden">
+                    {showAdminPanel && isAdminPasscodeVerified ? "Admin" : "Appointments"}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {showAdminPanel && isAdminPasscodeVerified ? "Admin Panel" : "Life Step Appointment"}
+                  </span>
                 </h1>
               </div>
             </div>
