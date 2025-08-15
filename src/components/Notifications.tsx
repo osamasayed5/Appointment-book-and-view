@@ -50,7 +50,7 @@ const Notifications = () => {
       if (error) {
         console.error('Error fetching notifications:', error);
       } else {
-        setNotifications(data as any);
+        setNotifications(data as UserNotification[]);
         setUnreadCount(data.filter(n => !n.is_read).length);
       }
     };
