@@ -11,6 +11,7 @@ import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logActivity } from '@/utils/activityLogger';
+import { CustomField as CustomFieldType } from "@/types";
 
 interface FormConfig {
   show_phone: boolean;
@@ -31,27 +32,18 @@ interface FormConfig {
   require_time: boolean;
 }
 
-interface CustomField {
-  id: string;
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
-  is_required: boolean;
-  is_visible: boolean;
-}
-
 interface SettingsFormProps {
   services: string[];
   onUpdateServices: (newServices: string[]) => void;
   formConfig: FormConfig;
   onUpdateFormConfig: (newConfig: Partial<FormConfig>) => void;
-  customFields: CustomField[];
+  customFields: CustomFieldType[];
   onUpdateCustomFields: () => void;
 }
 
 const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConfig, customFields, onUpdateCustomFields }: SettingsFormProps) => {
   const [localConfig, setLocalConfig] = useState(formConfig);
-  const [newField, setNewField] = useState({ label: '', type: 'text' as const, is_required: false, is_visible: true });
+  const [newField, setNewField] = useState<{label: string; type: CustomFieldType['type']; is_required: boolean; is_visible: boolean}>({ label: '', type: 'text', is_required: false, is_visible: true });
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -99,7 +91,7 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
     }
   };
 
-  const handleDeleteField = async (field: CustomField) => {
+  const handleDeleteField = async (field: CustomFieldType) => {
     if (window.confirm(`Are you sure you want to delete the custom field "${field.label}"? This action cannot be undone.`)) {
       const { error: deleteError } = await supabase
         .from('custom_fields')
@@ -291,13 +283,14 @@ const SettingsForm = ({ services, onUpdateServices, formConfig, onUpdateFormConf
               </div>
               <div>
                 <Label htmlFor="field-type">Field Type</Label>
-                <Select value={newField.type} onValueChange={(value) => setNewField({ ...newField, type: value as 'text' })}>
+                <Select value={newField.type} onValueChange={(value) => setNewField({ ...newField, type: value as CustomFieldType['type'] })}>
                   <SelectTrigger id="field-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="text">Text</SelectItem>
                     <SelectItem value="number">Number</SelectItem>
                     <SelectItem value="date">Date</SelectItem>
                     <SelectItem value="boolean">Checkbox (Yes/No)</SelectItem>
+                    <SelectItem value="link">Link</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -32,7 +32,7 @@ interface CustomField {
   id: string;
   name: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
+  type: 'text' | 'number' | 'date' | 'boolean' | 'link';
   is_required: boolean;
   is_visible: boolean;
 }
@@ -220,6 +220,8 @@ const AppointmentForm = ({
         return <Input type="date" value={value} onChange={(e) => handleCustomDataChange(field.name, e.target.value)} className={className} />;
       case 'boolean':
         return <Checkbox checked={!!value} onCheckedChange={(checked) => handleCustomDataChange(field.name, checked)} />;
+      case 'link':
+        return <Input type="url" placeholder="https://example.com" value={value} onChange={(e) => handleCustomDataChange(field.name, e.target.value)} className={className} />;
       case 'text':
       default:
         return <Input type="text" value={value} onChange={(e) => handleCustomDataChange(field.name, e.target.value)} className={className} />;

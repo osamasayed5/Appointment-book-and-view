@@ -8,6 +8,7 @@ import {
   CheckCircle,
   XCircle,
   Settings,
+  Link,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -42,7 +43,8 @@ const AppointmentDetails = ({ appointment, customFields }: AppointmentDetailsPro
     .filter(field => field.is_visible && appointment.custom_data && appointment.custom_data[field.name] != null && appointment.custom_data[field.name] !== '')
     .map(field => ({
       label: field.label,
-      value: String(appointment.custom_data[field.name])
+      value: String(appointment.custom_data[field.name]),
+      type: field.type,
     }));
 
   return (
@@ -127,7 +129,21 @@ const AppointmentDetails = ({ appointment, customFields }: AppointmentDetailsPro
             {customDataEntries.map(entry => (
               <div key={entry.label} className="flex items-start text-sm">
                 <span className="font-medium text-gray-500 w-28 flex-shrink-0">{entry.label}:</span>
-                <span className="text-gray-800 break-words">{entry.value}</span>
+                <div className="min-w-0 flex-1">
+                  {entry.type === 'link' && entry.value ? (
+                    <a
+                      href={entry.value.startsWith('http') ? entry.value : `https://${entry.value}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-blue-600 hover:underline break-all"
+                    >
+                      <Link className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                      <span className="truncate">{entry.value}</span>
+                    </a>
+                  ) : (
+                    <span className="text-gray-800 break-words">{entry.value}</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

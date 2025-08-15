@@ -44,7 +44,7 @@ export interface CustomField {
   id: string;
   name: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
+  type: 'text' | 'number' | 'date' | 'boolean' | 'link';
   is_required: boolean;
   is_visible: boolean;
 }
