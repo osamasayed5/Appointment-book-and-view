@@ -88,17 +88,17 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
     }));
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 transition-all duration-300 hover:shadow-md w-full space-y-4">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 transition-all duration-300 hover:shadow-md w-full space-y-4">
       
       {/* Card Header: Avatar, Name, Service, and Actions */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center space-x-4 min-w-0">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl flex-shrink-0">
             {appointment.client_name.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h3 className="font-bold text-gray-900 text-lg">{appointment.client_name}</h3>
-            <p className="text-sm text-gray-500">{appointment.service}</p>
+          <div className="min-w-0">
+            <h3 className="font-bold text-gray-900 text-lg truncate">{appointment.client_name}</h3>
+            <p className="text-sm text-gray-500 truncate">{appointment.service}</p>
           </div>
         </div>
         
@@ -130,34 +130,34 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
       <Separator />
 
       {/* Card Body: Details and Status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between gap-4">
         {/* Left side: Details */}
         <div className="space-y-2 text-sm">
           <div className="flex items-center text-gray-600">
-            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-            <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+            <Calendar className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+            <span className="min-w-0">{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           </div>
           <div className="flex items-center text-gray-600">
-            <Clock className="w-4 h-4 mr-2 text-gray-400" />
-            <span>{appointment.time} ({appointment.duration} min)</span>
+            <Clock className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+            <span className="min-w-0">{appointment.time} ({appointment.duration} min)</span>
           </div>
           {appointment.phone && (
             <div className="flex items-center text-gray-600">
-              <Phone className="w-4 h-4 mr-2 text-gray-400" />
-              <span>{appointment.phone}</span>
+              <Phone className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+              <span className="min-w-0 break-all">{appointment.phone}</span>
             </div>
           )}
           {appointment.email && (
             <div className="flex items-center text-gray-600">
-              <Mail className="w-4 h-4 mr-2 text-gray-400" />
-              <span>{appointment.email}</span>
+              <Mail className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+              <span className="min-w-0 break-all">{appointment.email}</span>
             </div>
           )}
         </div>
 
         {/* Right side: Status */}
         <div className="flex flex-col items-start md:items-end justify-between space-y-2">
-           <Badge className={`${getStatusColor(appointment.status)} border px-3 py-1.5`}>
+           <Badge className={`${getStatusColor(appointment.status)} border px-3 py-1.5 self-start md:self-end`}>
             <div className="flex items-center space-x-1.5">
               {getStatusIcon(appointment.status)}
               <span className="capitalize font-medium text-sm">{appointment.status}</span>
@@ -187,7 +187,7 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
           {appointment.notes && (
             <div className="text-sm text-gray-700 flex items-start">
               <FileText className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-500" />
-              <p className="text-gray-600 bg-gray-50 p-2 rounded-md w-full">{appointment.notes}</p>
+              <p className="text-gray-600 bg-gray-50 p-2 rounded-md w-full break-words">{appointment.notes}</p>
             </div>
           )}
           {customDataEntries.length > 0 && (
@@ -195,7 +195,7 @@ const AppointmentCard = ({ appointment, onStatusChange, onEdit, onDelete, isRead
               {customDataEntries.map(entry => (
                 <div key={entry.label} className="flex">
                   <span className="font-medium text-gray-500 w-28 flex-shrink-0">{entry.label}:</span>
-                  <span className="text-gray-700">{entry.value}</span>
+                  <span className="text-gray-700 break-words">{entry.value}</span>
                 </div>
               ))}
             </div>
