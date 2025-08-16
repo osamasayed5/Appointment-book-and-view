@@ -19,24 +19,26 @@ const OneSignalInitializer = () => {
     window.OneSignal.push(async function() {
       await window.OneSignal.init({
         appId: oneSignalAppId,
-        allowLocalhostAsSecureOrigin: true, // Important for local development
+        allowLocalhostAsSecureOrigin: true,
       });
 
-      // This will now run only after the SDK is fully initialized.
       window.OneSignal.on('subscriptionChange', async (isSubscribed: boolean) => {
         if (isSubscribed) {
-          const player_id = await window.OneSignal.getUserId();
-          if (player_id) {
-            // Save the token to Supabase, using upsert to avoid duplicates
+          const onesignalUserId = await window.OneSignal.getUserId();
+          if (onesignalUserId) {
+            // Save the token to the new 'push_tokens' table
             const { error } = await supabase
-              .from('fcm_tokens')
-              .upsert({ user_id: session.user.id, token: player_id }, { onConflict: 'user_id,token' });
+              .from('push_tokens')
+              .upsert(
+                { user_id: session.user.id, onesignal_user_id: onesignalUserId },
+                { onConflict: 'user_id,onesignal_user_id' }
+              );
 
             if (error) {
               console.error('Error saving OneSignal Player ID:', error);
               toast.error('Failed to save notification subscription.');
             } else {
-              console.log('OneSignal Player ID saved:', player_id);
+              console.log('OneSignal Player ID saved:', onesignalUserId);
               toast.success('You are now subscribed to push notifications!');
             }
           }
@@ -46,10 +48,9 @@ const OneSignalInitializer = () => {
 
   }, [session]);
 
-  return null; // This component does not render anything
+  return null;
 };
 
-// Add this to window interface to avoid TypeScript errors
 declare global {
   interface Window {
     OneSignal: any;
