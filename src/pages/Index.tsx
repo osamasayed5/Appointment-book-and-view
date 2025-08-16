@@ -24,6 +24,7 @@ import { useServices } from "@/hooks/useServices";
 import { useFormConfig } from "@/hooks/useFormConfig";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { Appointment } from "@/types";
+import OneSignalInitializer from "@/components/OneSignalInitializer";
 
 const Index = () => {
   const { session, isLoading: isSessionLoading } = useSession();
@@ -106,6 +107,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <OneSignalInitializer />
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
