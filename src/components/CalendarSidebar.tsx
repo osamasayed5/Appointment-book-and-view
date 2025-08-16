@@ -32,8 +32,6 @@ const CalendarSidebar = ({
 }: CalendarSidebarProps) => {
   const navigateDate = (direction: 'prev' | 'next') => {
     const [year, month, day] = selectedDate.split('-').map(Number);
-    // Create a date in local time to avoid UTC conversion issues.
-    // Note: month is 0-indexed for the Date constructor.
     const currentDate = new Date(year, month - 1, day);
 
     if (direction === 'prev') {
@@ -42,7 +40,6 @@ const CalendarSidebar = ({
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Format the new date back to 'YYYY-MM-DD' string manually
     const newYear = currentDate.getFullYear();
     const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
     const newDay = String(currentDate.getDate()).padStart(2, '0');
@@ -63,10 +60,8 @@ const CalendarSidebar = ({
   };
 
   // Calendar grid generation
-  const currentDateObj = new Date(selectedDate);
-  currentDateObj.setMinutes(currentDateObj.getMinutes() + currentDateObj.getTimezoneOffset());
-  const year = currentDateObj.getFullYear();
-  const month = currentDateObj.getMonth();
+  const [year, monthNum] = selectedDate.split('-').map(Number);
+  const month = monthNum - 1; // Month is 0-indexed for Date object
 
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -78,6 +73,9 @@ const CalendarSidebar = ({
   for (let i = 1; i <= daysInMonth; i++) {
     calendarGrid.push(i);
   }
+  
+  const [sYear, sMonth, sDay] = selectedDate.split('-').map(Number);
+  const selectedDateObj = new Date(sYear, sMonth - 1, sDay);
 
   return (
     <div className="space-y-6">
@@ -100,7 +98,7 @@ const CalendarSidebar = ({
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <h3 className="text-lg font-medium text-gray-900 text-center px-2">
-                {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
+                {selectedDateObj.toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
@@ -128,8 +126,7 @@ const CalendarSidebar = ({
                   return <div key={`empty-${index}`} />;
                 }
 
-                const date = new Date(year, month, day);
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 const appointmentCount = appointments.filter(app => app.date === dateStr).length;
                 const isCurrentDate = dateStr === selectedDate;

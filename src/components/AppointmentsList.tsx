@@ -40,6 +40,9 @@ const AppointmentsList = ({
     setSelectedAppointment(null);
   };
 
+  const [year, month, day] = selectedDate.split('-').map(Number);
+  const selectedDateObj = new Date(year, month - 1, day);
+
   return (
     <>
       <Card>
@@ -51,7 +54,7 @@ const AppointmentsList = ({
                 Appointments
               </CardTitle>
               <CardDescription>
-                {filteredAppointments.length} appointment(s) on {new Date(selectedDate).toLocaleDateString()}
+                {filteredAppointments.length} appointment(s) on {selectedDateObj.toLocaleDateString()}
               </CardDescription>
             </div>
           </div>
