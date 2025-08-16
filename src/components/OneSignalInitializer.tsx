@@ -16,13 +16,13 @@ const OneSignalInitializer = () => {
     }
 
     window.OneSignal = window.OneSignal || [];
-    window.OneSignal.push(function() {
-      window.OneSignal.init({
+    window.OneSignal.push(async function() {
+      await window.OneSignal.init({
         appId: oneSignalAppId,
         allowLocalhostAsSecureOrigin: true, // Important for local development
       });
 
-      // Listener for when a user is subscribed
+      // This will now run only after the SDK is fully initialized.
       window.OneSignal.on('subscriptionChange', async (isSubscribed: boolean) => {
         if (isSubscribed) {
           const player_id = await window.OneSignal.getUserId();
