@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Send, AlertCircle, History, User, Clock, Trash2, ChevronsUpDown, Check, BellRing } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Send, AlertCircle, History, User, Clock, Trash2, ChevronsUpDown, Check, BellRing, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
@@ -17,7 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Appointment } from '@/types';
 import { cn } from '@/lib/utils';
-import { sendSystemNotification } from '@/utils/notificationSender';
+import { sendSystemNotification, sendTargetedNotification } from '@/utils/notificationSender';
+import { Badge } from '@/components/ui/badge';
 
 interface SentNotification {
   id: string;
@@ -25,6 +26,12 @@ interface SentNotification {
   message: string;
   created_at: string;
   sender_email: string | null;
+}
+
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 const NotificationsTab = () => {
@@ -39,13 +46,13 @@ const NotificationsTab = () => {
   const [history, setHistory] = useState<SentNotification[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
-  // State for status update notifications
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(true);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'confirmed' | 'pending' | 'cancelled' | ''>('');
-  const [isSendingUpdate, setIsSendingUpdate] = useState(false);
-  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
+  // State for targeted notifications
+  const [allUsers, setAllUsers] = useState<Profile[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<Profile[]>([]);
+  const [targetedTitle, setTargetedTitle] = useState('');
+  const [targetedMessage, setTargetedMessage] = useState('');
+  const [isSendingTargeted, setIsSendingTargeted] = useState(false);
+  const [isUserSelectOpen, setIsUserSelectOpen] = useState(false);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
@@ -63,20 +70,18 @@ const NotificationsTab = () => {
     setLoadingHistory(false);
   };
 
-  const fetchAppointments = async () => {
-    setLoadingAppointments(true);
-    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: false });
+  const fetchUsers = async () => {
+    const { data, error } = await supabase.from('profiles').select('id, first_name, last_name');
     if (error) {
-      toast.error('Failed to load appointments.');
+      toast.error('Failed to load users.');
     } else {
-      setAppointments(data as Appointment[]);
+      setAllUsers(data as Profile[]);
     }
-    setLoadingAppointments(false);
   };
 
   useEffect(() => {
     fetchHistory();
-    fetchAppointments();
+    fetchUsers();
   }, []);
 
   const handleSendBroadcast = async () => {
@@ -105,42 +110,31 @@ const NotificationsTab = () => {
     }
   };
 
-  const handleSendStatusUpdate = async () => {
-    if (!selectedAppointmentId || !selectedStatus) {
-      toast.error("Please select an appointment and a new status.");
+  const handleSendTargeted = async () => {
+    if (!targetedTitle.trim() || !targetedMessage.trim() || selectedUsers.length === 0) {
+      toast.error("Title, message, and at least one recipient are required.");
       return;
     }
-    setIsSendingUpdate(true);
-
-    const appointment = appointments.find(a => a.id === selectedAppointmentId);
-    if (!appointment) {
-      toast.error("Selected appointment not found.");
-      setIsSendingUpdate(false);
+    if (!session) {
+      toast.error('You must be logged in to send notifications.');
       return;
     }
+    setIsSendingTargeted(true);
 
-    const { error: updateError } = await supabase
-      .from('appointments')
-      .update({ status: selectedStatus })
-      .eq('id', selectedAppointmentId);
-
-    if (updateError) {
-      toast.error(`Failed to update appointment status: ${updateError.message}`);
-      setIsSendingUpdate(false);
-      return;
+    try {
+      const userIds = selectedUsers.map(u => u.id);
+      await sendTargetedNotification(targetedTitle, targetedMessage, userIds, session.user.email || 'Admin');
+      toast.success(`Notification sent to ${selectedUsers.length} user(s)!`);
+      await logActivity('Sent targeted notification', { title: targetedTitle, recipients: selectedUsers.map(u => u.id) });
+      setTargetedTitle('');
+      setTargetedMessage('');
+      setSelectedUsers([]);
+      fetchHistory();
+    } catch (err: any) {
+      // Error toast is handled in the sender function
+    } finally {
+      setIsSendingTargeted(false);
     }
-
-    const notificationTitle = 'Appointment Status Updated';
-    const notificationMessage = `The status for ${appointment.client_name}'s appointment on ${appointment.date} has been changed to ${selectedStatus}.`;
-    
-    await sendSystemNotification(notificationTitle, notificationMessage);
-    await logActivity(`Changed status to ${selectedStatus} for ${appointment.client_name}'s appointment and sent notification.`);
-    
-    toast.success('Status updated and notification sent!');
-    setSelectedAppointmentId(null);
-    setSelectedStatus('');
-    setIsSendingUpdate(false);
-    fetchHistory(); // Refresh history to show the new system notification
   };
 
   const handleDeleteNotification = async (notificationId: string, notificationTitle: string) => {
@@ -183,59 +177,68 @@ const NotificationsTab = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Update Appointment Status</CardTitle>
-            <CardDescription>Change an appointment's status and notify all users.</CardDescription>
+            <CardTitle>Send to Specific User(s)</CardTitle>
+            <CardDescription>Send a targeted message to one or more users.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Appointment</Label>
-              <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
+              <Label>Recipients</Label>
+              <Popover open={isUserSelectOpen} onOpenChange={setIsUserSelectOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={isComboboxOpen} className="w-full justify-between">
-                    {selectedAppointmentId ? (appointments.find((a) => a.id === selectedAppointmentId)?.client_name + ' on ' + appointments.find((a) => a.id === selectedAppointmentId)?.date) : "Select appointment..."}
+                  <Button variant="outline" role="combobox" className="w-full justify-between">
+                    {selectedUsers.length > 0 ? `${selectedUsers.length} user(s) selected` : "Select users..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[350px] p-0">
                   <Command>
-                    <CommandInput placeholder="Search appointments..." />
-                    <CommandEmpty>{loadingAppointments ? "Loading..." : "No appointment found."}</CommandEmpty>
-                    <CommandGroup>
-                      {appointments.map((appointment) => (
-                        <CommandItem
-                          key={appointment.id}
-                          value={`${appointment.client_name} ${appointment.service} ${appointment.date}`}
-                          onSelect={() => {
-                            setSelectedAppointmentId(appointment.id);
-                            setIsComboboxOpen(false);
-                          }}
-                        >
-                          <Check className={cn("mr-2 h-4 w-4", selectedAppointmentId === appointment.id ? "opacity-100" : "opacity-0")} />
-                          <div>
-                            <p>{appointment.client_name} - {appointment.service}</p>
-                            <p className="text-xs text-muted-foreground">{appointment.date} at {appointment.time}</p>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                    <CommandInput placeholder="Search users..." />
+                    <CommandList>
+                      <CommandEmpty>No users found.</CommandEmpty>
+                      <CommandGroup>
+                        {allUsers.map((user) => (
+                          <CommandItem
+                            key={user.id}
+                            value={`${user.first_name || ''} ${user.last_name || ''} ${user.id}`}
+                            onSelect={() => {
+                              setSelectedUsers(current => 
+                                current.some(u => u.id === user.id) 
+                                ? current.filter(u => u.id !== user.id) 
+                                : [...current, user]
+                              );
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", selectedUsers.some(u => u.id === user.id) ? "opacity-100" : "opacity-0")} />
+                            {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.id}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {selectedUsers.map(user => (
+                  <Badge key={user.id} variant="secondary">
+                    {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.id}
+                    <button onClick={() => setSelectedUsers(current => current.filter(u => u.id !== user.id))} className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </div>
             <div>
-              <Label>New Status</Label>
-              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as any)}>
-                <SelectTrigger><SelectValue placeholder="Select new status" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="targeted-title">Title</Label>
+              <Input id="targeted-title" value={targetedTitle} onChange={(e) => setTargetedTitle(e.target.value)} placeholder="e.g., Your Appointment Reminder" />
             </div>
-            <Button onClick={handleSendStatusUpdate} disabled={isSendingUpdate}>
-              <BellRing className="w-4 h-4 mr-2" />
-              {isSendingUpdate ? 'Updating...' : 'Update Status & Notify'}
+            <div>
+              <Label htmlFor="targeted-message">Message</Label>
+              <Textarea id="targeted-message" value={targetedMessage} onChange={(e) => setTargetedMessage(e.target.value)} placeholder="Your message here..." rows={4} />
+            </div>
+            <Button onClick={handleSendTargeted} disabled={isSendingTargeted}>
+              <Send className="w-4 h-4 mr-2" />
+              {isSendingTargeted ? 'Sending...' : 'Send to Selected'}
             </Button>
           </CardContent>
         </Card>

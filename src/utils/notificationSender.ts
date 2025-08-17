@@ -41,3 +41,37 @@ export const sendSystemNotification = async (title: string, message: string, sen
     toast.error(`Failed to send system notification: ${err.message}`);
   }
 };
+
+export const sendTargetedNotification = async (title: string, message: string, userIds: string[], senderEmail: string = 'Admin') => {
+  if (userIds.length === 0) {
+    toast.error("No users selected to receive the notification.");
+    return;
+  }
+
+  try {
+    // 1. Insert the main notification message
+    const { data: notification, error: notificationError } = await supabase
+      .from('notifications')
+      .insert({ title, message, sender_email: senderEmail })
+      .select()
+      .single();
+    if (notificationError) throw notificationError;
+
+    // 2. Create user_notification entries only for the selected users
+    const userNotifications = userIds.map(userId => ({
+      notification_id: notification.id,
+      user_id: userId,
+      is_read: false,
+    }));
+
+    const { error: userNotificationsError } = await supabase
+      .from('user_notifications')
+      .insert(userNotifications);
+    if (userNotificationsError) throw userNotificationsError;
+
+  } catch (err: any) {
+    console.error('Error sending targeted notification:', err);
+    toast.error(`Failed to send targeted notification: ${err.message}`);
+    throw err; // Re-throw to be caught by the calling function
+  }
+};
