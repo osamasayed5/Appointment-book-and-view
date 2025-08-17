@@ -177,10 +177,6 @@ const AppointmentForm = ({
   const handleSubmit = () => {
     if (validateForm() && !checkTimeConflict()) {
       let serviceToSave = formData.service === "Other" ? formData.customService.trim() : formData.service;
-      if (formData.service === "Other" && serviceToSave && !services.includes(serviceToSave)) {
-        onUpdateServices([...services, serviceToSave]);
-        toast.success(`Service "${serviceToSave}" has been added to your services list.`);
-      }
       onSave({ ...formData, service: serviceToSave });
       onClose();
     }
