@@ -21,17 +21,41 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, title, body } = await req.json();
+    const payload = await req.json();
 
-    if (!userId || !title || !body) {
-      throw new Error('Missing required parameters: userId, title, or body.');
-    }
+    let userId: string;
+    let title: string;
+    let body: string;
 
     // Create a Supabase client with the service role key to bypass RLS
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+
+    // Check if the payload is from the database trigger
+    if (payload.record && payload.record.user_id && payload.record.notification_id) {
+      const { user_id, notification_id } = payload.record;
+      userId = user_id;
+
+      // Fetch the notification details from the 'notifications' table
+      const { data: notification, error: notifError } = await supabaseAdmin
+        .from('notifications')
+        .select('title, message')
+        .eq('id', notification_id)
+        .single();
+
+      if (notifError) throw new Error(`Notification not found: ${notifError.message}`);
+      
+      title = notification.title;
+      body = notification.message;
+    } else {
+      throw new Error('Invalid payload structure. Expected payload from database trigger.');
+    }
+
+    if (!userId || !title || !body) {
+      throw new Error('Missing required parameters to send notification.');
+    }
 
     // Fetch all subscriptions for the given user
     const { data: subscriptions, error: fetchError } = await supabaseAdmin
@@ -41,9 +65,10 @@ serve(async (req) => {
 
     if (fetchError) throw fetchError;
     if (!subscriptions || subscriptions.length === 0) {
+      console.log(`No push subscriptions found for user: ${userId}`);
       return new Response(JSON.stringify({ message: 'No subscriptions found for this user.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 404,
+        status: 200,
       });
     }
 
@@ -53,7 +78,6 @@ serve(async (req) => {
         await webpush.sendNotification(sub.subscription, notificationPayload);
       } catch (error) {
         console.error('Failed to send notification:', error);
-        // If a subscription is expired or invalid, delete it from the database
         if (error.statusCode === 410) {
           await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id);
         }
@@ -67,6 +91,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error('Error in send-push-notification function:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
