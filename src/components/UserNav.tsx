@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/SessionContextProvider";
-import { LogOut } from "lucide-react";
+import { LogOut, BellRing } from "lucide-react";
+import { subscribeToPushNotifications } from "@/utils/pushNotifications";
 
 interface UserNavProps {
   onSignOut: () => void;
@@ -24,6 +25,10 @@ export function UserNav({ onSignOut }: UserNavProps) {
 
   const userEmail = session.user.email || "user@example.com";
   const userInitial = userEmail.charAt(0).toUpperCase();
+
+  const handleEnableNotifications = () => {
+    subscribeToPushNotifications();
+  };
 
   return (
     <DropdownMenu>
@@ -43,6 +48,11 @@ export function UserNav({ onSignOut }: UserNavProps) {
             </p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleEnableNotifications}>
+          <BellRing className="mr-2 h-4 w-4" />
+          <span>Enable Notifications</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
