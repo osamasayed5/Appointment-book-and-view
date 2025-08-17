@@ -9,7 +9,22 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Appointment } from "@/types";
+
+interface Appointment {
+  id: string;
+  user_id: string;
+  client_name: string;
+  service: string;
+  date: string;
+  time: string;
+  status: "confirmed" | "pending" | "cancelled";
+  duration: number;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  created_at: string;
+  custom_data?: any;
+}
 
 interface AppointmentItemProps {
   appointment: Appointment;
