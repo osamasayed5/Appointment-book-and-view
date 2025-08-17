@@ -46,6 +46,14 @@ const NotificationsTab = () => {
   const [history, setHistory] = useState<SentNotification[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
+  // State for status update notifications
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'confirmed' | 'pending' | 'cancelled' | ''>('');
+  const [isSendingUpdate, setIsSendingUpdate] = useState(false);
+  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
+
   // State for targeted notifications
   const [allUsers, setAllUsers] = useState<Profile[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Profile[]>([]);
@@ -70,6 +78,17 @@ const NotificationsTab = () => {
     setLoadingHistory(false);
   };
 
+  const fetchAppointments = async () => {
+    setLoadingAppointments(true);
+    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: false });
+    if (error) {
+      toast.error('Failed to load appointments.');
+    } else {
+      setAppointments(data as Appointment[]);
+    }
+    setLoadingAppointments(false);
+  };
+
   const fetchUsers = async () => {
     const { data, error } = await supabase.from('profiles').select('id, first_name, last_name');
     if (error) {
@@ -81,6 +100,7 @@ const NotificationsTab = () => {
 
   useEffect(() => {
     fetchHistory();
+    fetchAppointments();
     fetchUsers();
   }, []);
 
@@ -108,6 +128,44 @@ const NotificationsTab = () => {
     } finally {
       setIsSendingBroadcast(false);
     }
+  };
+
+  const handleSendStatusUpdate = async () => {
+    if (!selectedAppointmentId || !selectedStatus) {
+      toast.error("Please select an appointment and a new status.");
+      return;
+    }
+    setIsSendingUpdate(true);
+
+    const appointment = appointments.find(a => a.id === selectedAppointmentId);
+    if (!appointment) {
+      toast.error("Selected appointment not found.");
+      setIsSendingUpdate(false);
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('appointments')
+      .update({ status: selectedStatus })
+      .eq('id', selectedAppointmentId);
+
+    if (updateError) {
+      toast.error(`Failed to update appointment status: ${updateError.message}`);
+      setIsSendingUpdate(false);
+      return;
+    }
+
+    const notificationTitle = 'Appointment Status Updated';
+    const notificationMessage = `The status for ${appointment.client_name}'s appointment on ${appointment.date} has been changed to ${selectedStatus}.`;
+    
+    await sendSystemNotification(notificationTitle, notificationMessage);
+    await logActivity(`Changed status to ${selectedStatus} for ${appointment.client_name}'s appointment and sent notification.`);
+    
+    toast.success('Status updated and notification sent!');
+    setSelectedAppointmentId(null);
+    setSelectedStatus('');
+    setIsSendingUpdate(false);
+    fetchHistory(); // Refresh history to show the new system notification
   };
 
   const handleSendTargeted = async () => {
@@ -171,6 +229,67 @@ const NotificationsTab = () => {
             <Button onClick={handleSendBroadcast} disabled={isSendingBroadcast}>
               <Send className="w-4 h-4 mr-2" />
               {isSendingBroadcast ? 'Sending...' : 'Send Broadcast'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Update Appointment Status</CardTitle>
+            <CardDescription>Change an appointment's status and notify all users.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label>Appointment</Label>
+              <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={isComboboxOpen} className="w-full justify-between">
+                    {selectedAppointmentId ? (appointments.find((a) => a.id === selectedAppointmentId)?.client_name + ' on ' + appointments.find((a) => a.id === selectedAppointmentId)?.date) : "Select appointment..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[350px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search appointments..." />
+                    <CommandList>
+                      <CommandEmpty>{loadingAppointments ? "Loading..." : "No appointment found."}</CommandEmpty>
+                      <CommandGroup>
+                        {appointments.map((appointment) => (
+                          <CommandItem
+                            key={appointment.id}
+                            value={`${appointment.client_name} ${appointment.service} ${appointment.date}`}
+                            onSelect={() => {
+                              setSelectedAppointmentId(appointment.id);
+                              setIsComboboxOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", selectedAppointmentId === appointment.id ? "opacity-100" : "opacity-0")} />
+                            <div>
+                              <p>{appointment.client_name} - {appointment.service}</p>
+                              <p className="text-xs text-muted-foreground">{appointment.date} at {appointment.time}</p>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>New Status</Label>
+              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as any)}>
+                <SelectTrigger><SelectValue placeholder="Select new status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleSendStatusUpdate} disabled={isSendingUpdate}>
+              <BellRing className="w-4 h-4 mr-2" />
+              {isSendingUpdate ? 'Updating...' : 'Update Status & Notify'}
             </Button>
           </CardContent>
         </Card>
