@@ -24,6 +24,7 @@ import { useServices } from "@/hooks/useServices";
 import { useFormConfig } from "@/hooks/useFormConfig";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { Appointment } from "@/types";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 const Index = () => {
   const { session, isLoading: isSessionLoading } = useSession();
@@ -126,7 +127,8 @@ const Index = () => {
             </div>
 
             {/* Desktop Header Actions */}
-            <div className="hidden sm:flex items-center space-x-4">
+            <div className="hidden sm:flex items-center space-x-2">
+              <PushNotificationManager />
               <Notifications />
               <Button 
                 variant="ghost"
@@ -151,7 +153,8 @@ const Index = () => {
             </div>
 
             {/* Mobile Header Actions */}
-            <div className="flex sm:hidden items-center space-x-2">
+            <div className="flex sm:hidden items-center space-x-1">
+              <PushNotificationManager />
               <Notifications />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
