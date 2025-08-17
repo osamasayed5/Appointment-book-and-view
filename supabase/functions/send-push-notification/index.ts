@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import webpush from 'https://deno.land/x/webpush@0.2.0/mod.ts';
+import webpush from 'https://esm.sh/web-push@3.6.7';
 
 // Configure web-push with VAPID keys from environment variables
 webpush.setVapidDetails(
