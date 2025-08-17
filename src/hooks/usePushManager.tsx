@@ -32,7 +32,7 @@ export const usePushManager = () => {
       let subscription = await swRegistration.pushManager.getSubscription();
 
       if (subscription === null) {
-        if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === 'YOUR_PUBLIC_KEY_HERE') {
+        if (!VAPID_PUBLIC_KEY) {
           console.error("VAPID public key is not defined. Please set VITE_VAPID_PUBLIC_KEY in your .env file.");
           toast.error("Push notification setup is incomplete on the server.");
           return;
@@ -55,6 +55,7 @@ export const usePushManager = () => {
         });
 
       if (error) {
+        // Handle potential duplicate subscriptions gracefully
         if (error.code !== '23505') { // 23505 is unique_violation
           throw error;
         }

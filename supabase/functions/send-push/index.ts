@@ -53,6 +53,7 @@ serve(async (req) => {
         await webPush.send(sub.subscription as unknown as PushSubscription, payload);
       } catch (err) {
         console.error(`Failed to send push to user ${sub.user_id}:`, err.message);
+        // If subscription is expired or invalid, delete it
         if (err.message.includes('404') || err.message.includes('410')) {
           console.log(`Deleting stale subscription for user ${sub.user_id}`);
           await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id);

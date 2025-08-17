@@ -12,6 +12,8 @@ const triggerPushNotifications = async (userIds: string[], title: string, messag
     if (error) throw error;
   } catch (err: any) {
     console.error('Error triggering push notifications:', err.message);
+    // We don't show a toast here because the primary action (in-app notification) succeeded.
+    // This is a background task.
   }
 };
 
@@ -39,6 +41,7 @@ export const sendSystemNotification = async (title: string, message: string, sen
       .insert(userNotifications);
     if (userNotificationsError) throw userNotificationsError;
 
+    // Trigger push notifications for all users
     const userIds = profiles.map(p => p.id);
     await triggerPushNotifications(userIds, title, message);
 
@@ -73,6 +76,7 @@ export const sendTargetedNotification = async (title: string, message: string, u
       .insert(userNotifications);
     if (userNotificationsError) throw userNotificationsError;
 
+    // Trigger push notifications for the targeted users
     await triggerPushNotifications(userIds, title, message);
 
   } catch (err: any) {
