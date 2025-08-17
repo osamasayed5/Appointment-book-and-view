@@ -53,6 +53,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
   const [activeTab, setActiveTab] = useState("appointments");
   const isMobile = useIsMobile();
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = useState<string | null>(null);
 
   const filteredAppointments = appointments
     .filter(appointment =>
@@ -289,6 +290,49 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
     setSelectedAppointmentDetails(null);
   };
 
+  const handleSendPushReminder = async (appointment: Appointment) => {
+    setIsSendingReminder(appointment.id);
+    try {
+      if (!appointment.email) {
+        toast.error("This appointment has no email address to identify the user.");
+        return;
+      }
+
+      // Find the user profile by email
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', appointment.email)
+        .single();
+
+      if (profileError || !profile) {
+        toast.error("No registered user found with this email address.");
+        return;
+      }
+
+      const payload = {
+        userId: profile.id,
+        title: "Appointment Reminder",
+        body: `Hi ${appointment.client_name}, this is a reminder for your ${appointment.service} appointment on ${appointment.date} at ${appointment.time}.`
+      };
+
+      const { error: functionError } = await supabase.functions.invoke('send-push-notification', {
+        body: payload,
+      });
+
+      if (functionError) throw functionError;
+
+      toast.success(`Push reminder sent to ${appointment.client_name}!`);
+      await logActivity(`Sent push reminder for ${appointment.client_name}'s appointment`);
+
+    } catch (error) {
+      console.error("Failed to send push reminder:", error);
+      toast.error(`Failed to send reminder: ${error.message}`);
+    } finally {
+      setIsSendingReminder(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <AdminHeader
@@ -374,6 +418,8 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
                       onEdit={onEditAppointmentClick}
                       onDelete={handleDeleteAppointment}
                       onViewDetails={handleViewDetails}
+                      onSendReminder={handleSendPushReminder}
+                      isSendingReminder={isSendingReminder === appointment.id}
                     />
                   ))}
                 </div>

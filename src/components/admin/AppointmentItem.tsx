@@ -5,26 +5,13 @@ import {
   UserX,
   Edit2,
   Trash2,
+  Bell,
+  RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Appointment {
-  id: string;
-  user_id: string;
-  client_name: string;
-  service: string;
-  date: string;
-  time: string;
-  status: "confirmed" | "pending" | "cancelled";
-  duration: number;
-  phone?: string;
-  email?: string;
-  notes?: string;
-  created_at: string;
-  custom_data?: any;
-}
+import { Appointment } from "@/types";
 
 interface AppointmentItemProps {
   appointment: Appointment;
@@ -33,6 +20,8 @@ interface AppointmentItemProps {
   onEdit: (appointment: Appointment) => void;
   onDelete: (id: string) => void;
   onViewDetails: (appointment: Appointment) => void;
+  onSendReminder: (appointment: Appointment) => void;
+  isSendingReminder: boolean;
 }
 
 const AppointmentItem = ({
@@ -42,6 +31,8 @@ const AppointmentItem = ({
   onEdit,
   onDelete,
   onViewDetails,
+  onSendReminder,
+  isSendingReminder,
 }: AppointmentItemProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -109,6 +100,15 @@ const AppointmentItem = ({
       
       {/* Action Buttons */}
       <div className="flex items-center space-x-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); onSendReminder(appointment); }}
+          disabled={isSendingReminder}
+          title="Send Push Reminder"
+        >
+          {isSendingReminder ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
+        </Button>
         <Button
           variant="ghost"
           size="sm"
