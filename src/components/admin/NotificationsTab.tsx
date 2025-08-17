@@ -32,6 +32,7 @@ interface Profile {
   id: string;
   first_name: string | null;
   last_name: string | null;
+  email: string | null;
 }
 
 const NotificationsTab = () => {
@@ -90,7 +91,7 @@ const NotificationsTab = () => {
   };
 
   const fetchUsers = async () => {
-    const { data, error } = await supabase.from('profiles').select('id, first_name, last_name');
+    const { data, error } = await supabase.from('profiles').select('id, first_name, last_name, email');
     if (error) {
       toast.error('Failed to load users.');
     } else {
@@ -103,6 +104,11 @@ const NotificationsTab = () => {
     fetchAppointments();
     fetchUsers();
   }, []);
+
+  const getUserDisplayName = (user: Profile) => {
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    return fullName || user.email || user.id;
+  };
 
   const handleSendBroadcast = async () => {
     if (!title.trim() || !message.trim()) {
@@ -318,7 +324,7 @@ const NotificationsTab = () => {
                         {allUsers.map((user) => (
                           <CommandItem
                             key={user.id}
-                            value={`${user.first_name || ''} ${user.last_name || ''} ${user.id}`}
+                            value={getUserDisplayName(user)}
                             onSelect={() => {
                               setSelectedUsers(current => 
                                 current.some(u => u.id === user.id) 
@@ -328,7 +334,7 @@ const NotificationsTab = () => {
                             }}
                           >
                             <Check className={cn("mr-2 h-4 w-4", selectedUsers.some(u => u.id === user.id) ? "opacity-100" : "opacity-0")} />
-                            {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.id}
+                            {getUserDisplayName(user)}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -339,7 +345,7 @@ const NotificationsTab = () => {
               <div className="flex flex-wrap gap-1 mt-2">
                 {selectedUsers.map(user => (
                   <Badge key={user.id} variant="secondary">
-                    {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.id}
+                    {getUserDisplayName(user)}
                     <button onClick={() => setSelectedUsers(current => current.filter(u => u.id !== user.id))} className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5">
                       <X className="h-3 w-3" />
                     </button>
