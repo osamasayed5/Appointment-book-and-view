@@ -1,35 +1,29 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const triggerPushNotifications = async (userIds: string[], title: string, message: string) => {
-  try {
-    const { error } = await supabase.functions.invoke('send-push', {
-      body: {
-        userIds,
-        notification: { title, message },
-      },
-    });
-    if (error) throw error;
-  } catch (err: any) {
-    console.error('Error triggering push notifications:', err.message);
-    // We don't show a toast here because the primary action (in-app notification) succeeded.
-    // This is a background task.
-  }
-};
-
 export const sendSystemNotification = async (title: string, message: string, senderEmail: string = 'System') => {
   try {
+    // 1. Get all user profiles to send them a notification
     const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id');
     if (profilesError) throw profilesError;
-    if (!profiles || profiles.length === 0) return;
+    if (!profiles || profiles.length === 0) {
+      console.log("No user profiles found to send notifications to.");
+      return;
+    }
 
+    // 2. Insert the main notification message
     const { data: notification, error: notificationError } = await supabase
       .from('notifications')
-      .insert({ title, message, sender_email: senderEmail })
+      .insert({
+        title,
+        message,
+        sender_email: senderEmail, // Mark as a system notification
+      })
       .select()
       .single();
     if (notificationError) throw notificationError;
 
+    // 3. Create a user_notification entry for each user to link them to the message
     const userNotifications = profiles.map(profile => ({
       notification_id: notification.id,
       user_id: profile.id,
@@ -41,12 +35,9 @@ export const sendSystemNotification = async (title: string, message: string, sen
       .insert(userNotifications);
     if (userNotificationsError) throw userNotificationsError;
 
-    // Trigger push notifications for all users
-    const userIds = profiles.map(p => p.id);
-    await triggerPushNotifications(userIds, title, message);
-
   } catch (err: any) {
     console.error('Error sending system notification:', err);
+    // Show an error to the admin performing the action, but don't block the main action
     toast.error(`Failed to send system notification: ${err.message}`);
   }
 };
@@ -58,6 +49,7 @@ export const sendTargetedNotification = async (title: string, message: string, u
   }
 
   try {
+    // 1. Insert the main notification message
     const { data: notification, error: notificationError } = await supabase
       .from('notifications')
       .insert({ title, message, sender_email: senderEmail })
@@ -65,6 +57,7 @@ export const sendTargetedNotification = async (title: string, message: string, u
       .single();
     if (notificationError) throw notificationError;
 
+    // 2. Create user_notification entries only for the selected users
     const userNotifications = userIds.map(userId => ({
       notification_id: notification.id,
       user_id: userId,
@@ -76,12 +69,9 @@ export const sendTargetedNotification = async (title: string, message: string, u
       .insert(userNotifications);
     if (userNotificationsError) throw userNotificationsError;
 
-    // Trigger push notifications for the targeted users
-    await triggerPushNotifications(userIds, title, message);
-
   } catch (err: any) {
     console.error('Error sending targeted notification:', err);
     toast.error(`Failed to send targeted notification: ${err.message}`);
-    throw err;
+    throw err; // Re-throw to be caught by the calling function
   }
 };
