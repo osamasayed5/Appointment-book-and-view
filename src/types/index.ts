@@ -5,7 +5,7 @@ export interface Appointment {
   service: string;
   date: string;
   time: string;
-  status: "confirmed" | "pending" | "cancelled";
+  status: "approved" | "pending" | "cancelled" | "follow up";
   duration: number;
   phone?: string;
   email?: string;

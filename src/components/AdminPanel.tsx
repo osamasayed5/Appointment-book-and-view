@@ -97,9 +97,10 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
     return {
       total: appointments.length,
       today: appointments.filter(app => app.date === today).length,
-      confirmed: appointments.filter(app => app.status === 'confirmed').length,
+      approved: appointments.filter(app => app.status === 'approved').length,
       pending: appointments.filter(app => app.status === 'pending').length,
       cancelled: appointments.filter(app => app.status === 'cancelled').length,
+      followUp: appointments.filter(app => app.status === 'follow up').length,
     };
   };
 

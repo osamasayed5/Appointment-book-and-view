@@ -9,6 +9,7 @@ import {
   XCircle,
   Settings,
   Link,
+  RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -23,18 +24,20 @@ interface AppointmentDetailsProps {
 const AppointmentDetails = ({ appointment, customFields }: AppointmentDetailsProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'follow up': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'approved': return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
       case 'cancelled': return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'follow up': return <RefreshCw className="w-4 h-4 text-blue-600" />;
       default: return null;
     }
   };

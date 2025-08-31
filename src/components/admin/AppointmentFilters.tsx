@@ -43,9 +43,10 @@ const AppointmentFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="follow up">Follow Up</SelectItem>
               </SelectContent>
             </Select>
             <Select value={dateFilter} onValueChange={onDateFilterChange}>

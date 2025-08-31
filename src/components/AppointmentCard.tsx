@@ -1,4 +1,4 @@
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Appointment } from "@/types";
 
@@ -10,18 +10,20 @@ interface AppointmentCardProps {
 const AppointmentCard = ({ appointment, onClick }: AppointmentCardProps) => {
   const getStatusIndicatorClass = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-500';
+      case 'approved': return 'bg-green-500';
       case 'pending': return 'bg-yellow-500';
       case 'cancelled': return 'bg-red-500';
+      case 'follow up': return 'bg-blue-500';
       default: return 'bg-gray-400';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed': return <CheckCircle className="w-3 h-3 text-green-700" />;
+      case 'approved': return <CheckCircle className="w-3 h-3 text-green-700" />;
       case 'pending': return <Clock className="w-3 h-3 text-yellow-700" />;
       case 'cancelled': return <XCircle className="w-3 h-3 text-red-700" />;
+      case 'follow up': return <RefreshCw className="w-3 h-3 text-blue-700" />;
       default: return null;
     }
   };

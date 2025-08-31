@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, UserX, Trash2 } from "lucide-react";
+import { CheckCircle, Clock, UserX, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,11 +36,11 @@ const BulkActions = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onBulkStatusChange('confirmed')}
+              onClick={() => onBulkStatusChange('approved')}
               disabled={selectedAppointments.length === 0}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              Confirm
+              Approve
             </Button>
             <Button
               variant="outline"
@@ -50,6 +50,15 @@ const BulkActions = ({
             >
               <Clock className="w-4 h-4 mr-1" />
               Pending
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onBulkStatusChange('follow up')}
+              disabled={selectedAppointments.length === 0}
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Follow Up
             </Button>
             <Button
               variant="outline"

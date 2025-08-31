@@ -74,7 +74,7 @@ export const useAppointments = () => {
         service: data.service,
         date: data.date,
         time: data.time,
-        status: "pending",
+        status: data.status || "pending",
         duration: data.duration,
         phone: data.phone || null,
         email: data.email || null,
@@ -124,9 +124,9 @@ export const useAppointments = () => {
         let notificationTitle = '';
         let notificationMessage = '';
         switch (data.status) {
-          case 'confirmed':
-            notificationTitle = 'Appointment Confirmed';
-            notificationMessage = `The appointment for ${data.clientName} on ${data.date} has been confirmed.`;
+          case 'approved':
+            notificationTitle = 'Appointment Approved';
+            notificationMessage = `The appointment for ${data.clientName} on ${data.date} has been approved.`;
             break;
           case 'cancelled':
             notificationTitle = 'Appointment Cancelled';
@@ -135,6 +135,10 @@ export const useAppointments = () => {
           case 'pending':
             notificationTitle = 'Appointment Pending';
             notificationMessage = `The appointment for ${data.clientName} on ${data.date} is now pending review.`;
+            break;
+          case 'follow up':
+            notificationTitle = 'Appointment Needs Follow-up';
+            notificationMessage = `The appointment for ${data.clientName} on ${data.date} has been marked for follow-up.`;
             break;
         }
         if (notificationTitle && notificationMessage) {

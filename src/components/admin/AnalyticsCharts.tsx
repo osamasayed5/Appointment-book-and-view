@@ -1,23 +1,15 @@
 import { BarChart3, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface Appointment {
-  id: string;
-  user_id: string;
-  client_name: string;
-  service: string;
-  date: string;
-  time: string;
-  status: "confirmed" | "pending" | "cancelled";
-  duration: number;
-  phone?: string;
-  email?: string;
-  notes?: string;
-  created_at: string;
-}
+import { Appointment } from "@/types";
 
 interface AnalyticsChartsProps {
-  stats: any;
+  stats: {
+    total: number;
+    approved: number;
+    pending: number;
+    cancelled: number;
+    followUp: number;
+  };
   appointments: Appointment[];
 }
 
@@ -34,15 +26,15 @@ const AnalyticsCharts = ({ stats, appointments }: AnalyticsChartsProps) => {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Confirmed</span>
+              <span className="text-sm text-gray-600">Approved</span>
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${stats.total > 0 ? (stats.confirmed / stats.total) * 100 : 0}%` }}
+                    style={{ width: `${stats.total > 0 ? (stats.approved / stats.total) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-medium">{stats.confirmed}</span>
+                <span className="text-sm font-medium">{stats.approved}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -55,6 +47,18 @@ const AnalyticsCharts = ({ stats, appointments }: AnalyticsChartsProps) => {
                   ></div>
                 </div>
                 <span className="text-sm font-medium">{stats.pending}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Follow Up</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-20 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{ width: `${stats.total > 0 ? (stats.followUp / stats.total) * 100 : 0}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium">{stats.followUp}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">

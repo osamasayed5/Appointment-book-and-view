@@ -81,6 +81,7 @@ const AppointmentForm = ({
     phone: initialData?.phone || "",
     email: initialData?.email || "",
     notes: initialData?.notes || "",
+    status: initialData?.status || "pending",
     customData: initialData?.custom_data || {},
   });
 
@@ -294,6 +295,20 @@ const AppointmentForm = ({
                   {errors.duration && <p className="text-red-600 text-xs mt-1">{errors.duration}</p>}
                 </div>
               )}
+            </div>
+            <Separator />
+            {/* Status Section */}
+            <div>
+              <Label>Status</Label>
+              <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="follow up">Follow Up</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Separator />
             {/* Contact Info Section */}

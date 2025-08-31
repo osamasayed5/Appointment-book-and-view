@@ -1,18 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, CheckCircle, XCircle, Users, TrendingUp } from "lucide-react";
-
-interface Appointment {
-  id: string;
-  client_name: string; // Changed to client_name
-  service: string;
-  date: string;
-  time: string;
-  status: "confirmed" | "pending" | "cancelled";
-  duration: number;
-  phone?: string;
-  email?: string;
-  notes?: string;
-}
+import { Calendar, Clock, CheckCircle, XCircle, Users, TrendingUp, RefreshCw } from "lucide-react";
+import { Appointment } from "@/types";
 
 interface AdminDashboardStatsProps {
   appointments: Appointment[];
@@ -26,9 +14,10 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
   const getStatusCounts = (apps: Appointment[]) => {
     return {
       total: apps.length,
-      confirmed: apps.filter(app => app.status === 'confirmed').length,
+      approved: apps.filter(app => app.status === 'approved').length,
       pending: apps.filter(app => app.status === 'pending').length,
       cancelled: apps.filter(app => app.status === 'cancelled').length,
+      followUp: apps.filter(app => app.status === 'follow up').length,
       totalHours: apps.reduce((total, app) => total + (app.duration / 60), 0)
     };
   };
@@ -40,7 +29,7 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
     
     const weekStats = {
       total: 0,
-      confirmed: 0,
+      approved: 0,
       totalHours: 0
     };
 
@@ -51,7 +40,7 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
       
       const dayAppointments = appointments.filter(app => app.date === dateStr);
       weekStats.total += dayAppointments.length;
-      weekStats.confirmed += dayAppointments.filter(app => app.status === 'confirmed').length;
+      weekStats.approved += dayAppointments.filter(app => app.status === 'approved').length;
       weekStats.totalHours += dayAppointments.reduce((total, app) => total + (app.duration / 60), 0);
     }
 
@@ -84,9 +73,9 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
                 <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                Confirmed
+                Approved
               </span>
-              <span className="font-medium text-green-600">{dailyCounts.confirmed}</span>
+              <span className="font-medium text-green-600">{dailyCounts.approved}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
@@ -94,6 +83,13 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
                 Pending
               </span>
               <span className="font-medium text-yellow-600">{dailyCounts.pending}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 flex items-center">
+                <RefreshCw className="w-4 h-4 mr-2 text-blue-600" />
+                Follow Up
+              </span>
+              <span className="font-medium text-blue-600">{dailyCounts.followUp}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
@@ -130,8 +126,8 @@ const AdminDashboardStats = ({ appointments }: AdminDashboardStatsProps) => {
               <span className="font-medium text-gray-900">{weeklyStats.total} appointments</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Week Confirmed</span>
-              <span className="font-medium text-green-600">{weeklyStats.confirmed}</span>
+              <span className="text-gray-600">Week Approved</span>
+              <span className="font-medium text-green-600">{weeklyStats.approved}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Week Hours</span>
