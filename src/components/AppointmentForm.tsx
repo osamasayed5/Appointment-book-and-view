@@ -18,6 +18,9 @@ import { Separator } from "@/components/ui/separator";
 import { Save, AlertCircle, User, Briefcase, Calendar, Clock, Phone, Mail, FileText, Settings } from "lucide-react";
 import { toast } from "sonner";
 
+// Define a key for session storage
+const DRAFT_KEY = 'appointment-form-draft';
+
 interface FormConfig {
   show_phone: boolean;
   require_phone: boolean;
@@ -111,25 +114,48 @@ const AppointmentForm = ({
       return `${String(hour).padStart(2, '0')}:${parts.minute}`;
   };
 
+  // Effect to load data when the form opens
   useEffect(() => {
     if (isOpen) {
-      const initialFormData = getInitialFormData();
-      const isCustomService = initialData && !services.includes(initialData.service);
-      if (isCustomService) {
-        initialFormData.service = "Other";
-        initialFormData.customService = initialData.service;
+      let dataToLoad = getInitialFormData();
+      
+      // If creating a new appointment, check for a saved draft
+      if (!initialData) {
+        const savedDraft = sessionStorage.getItem(DRAFT_KEY);
+        if (savedDraft) {
+          try {
+            dataToLoad = JSON.parse(savedDraft);
+            toast.info("Restored your saved draft.");
+          } catch (e) {
+            console.error("Failed to parse draft from session storage", e);
+          }
+        }
       }
-      setFormData(initialFormData);
+      
+      const isCustomService = dataToLoad.service && !services.includes(dataToLoad.service);
+      if (isCustomService) {
+        dataToLoad.customService = dataToLoad.service;
+        dataToLoad.service = "Other";
+      }
+      
+      setFormData(dataToLoad);
       setShowCustomServiceInput(isCustomService);
       setErrors({});
       
-      if (initialData?.time) {
-        setTimeParts(to12h(initialData.time));
+      if (dataToLoad.time) {
+        setTimeParts(to12h(dataToLoad.time));
       } else {
         setTimeParts({ hour: '09', minute: '00', ampm: 'AM' });
       }
     }
   }, [initialData, isOpen, services]);
+
+  // Effect to save draft to session storage on change (only for new appointments)
+  useEffect(() => {
+    if (isOpen && !initialData) {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+    }
+  }, [formData, isOpen, initialData]);
 
   useEffect(() => {
     handleInputChange('time', to24h(timeParts));
@@ -179,6 +205,14 @@ const AppointmentForm = ({
     if (validateForm() && !checkTimeConflict()) {
       let serviceToSave = formData.service === "Other" ? formData.customService.trim() : formData.service;
       onSave({ ...formData, service: serviceToSave });
+      sessionStorage.removeItem(DRAFT_KEY); // Clear draft on successful save
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    if (window.confirm("Are you sure you want to close? Any unsaved changes will be lost.")) {
+      sessionStorage.removeItem(DRAFT_KEY); // Clear draft on cancel
       onClose();
     }
   };
@@ -227,7 +261,7 @@ const AppointmentForm = ({
   const visibleCustomFields = customFields.filter(f => f.is_visible);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-lg max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -355,7 +389,7 @@ const AppointmentForm = ({
           </div>
         </ScrollArea>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSubmit}><Save className="w-4 h-4 mr-2" />Save Appointment</Button>
         </DialogFooter>
       </DialogContent>
