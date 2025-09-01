@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, RefreshCw, Calendar, Settings, MoreVertical, LogOut, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,12 @@ const Index = () => {
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
 
   const isRefreshing = appointmentsLoading;
+
+  const activeAppointments = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return appointments.filter(app => new Date(app.date) >= today);
+  }, [appointments]);
 
   const handleFormSave = (data: any) => {
     if (editingAppointment) {
@@ -233,12 +239,12 @@ const Index = () => {
                   <CalendarSidebar
                     selectedDate={selectedDate}
                     onDateChange={setSelectedDate}
-                    appointments={appointments}
+                    appointments={activeAppointments}
                   />
                 </div>
                 <div className="lg:col-span-2">
                   <AppointmentsList
-                    appointments={appointments}
+                    appointments={activeAppointments}
                     selectedDate={selectedDate}
                     customFields={customFields}
                   />
@@ -247,7 +253,7 @@ const Index = () => {
             </TabsContent>
             <TabsContent value="list">
               <StatusListView 
-                appointments={appointments}
+                appointments={activeAppointments}
                 onAppointmentClick={setSelectedAppointmentDetails}
               />
             </TabsContent>
