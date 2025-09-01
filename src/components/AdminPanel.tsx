@@ -54,7 +54,7 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
     return appointments.reduce(
       (acc, app) => {
         const appDate = new Date(app.date);
-        if (appDate < today) {
+        if (appDate < today && app.status !== 'follow up') {
           acc.archivedAppointments.push(app);
         } else {
           acc.activeAppointments.push(app);
