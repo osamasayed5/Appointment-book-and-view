@@ -27,7 +27,7 @@ const StatusListView = ({ appointments, onAppointmentClick }: StatusListViewProp
   };
 
   const renderAppointmentList = (apps: Appointment[], emptyMessage: string) => (
-    <ScrollArea className="h-[60vh] pr-4">
+    <ScrollArea className="max-h-[650px] pr-4">
       {apps.length > 0 ? (
         <div className="space-y-2">
           {apps.map(app => (
@@ -60,7 +60,7 @@ const StatusListView = ({ appointments, onAppointmentClick }: StatusListViewProp
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>

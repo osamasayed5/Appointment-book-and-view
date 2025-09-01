@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Calendar, Settings, Archive } from "lucide-react";
+import { Calendar, Settings, Archive, BarChart3, History, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,8 +9,6 @@ import AdminDashboardStats from "./AdminDashboardStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/components/SessionContextProvider";
 import { logActivity } from "@/utils/activityLogger";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import AppointmentDetails from "./AppointmentDetails";
 import { Appointment, FormConfig, CustomField } from "@/types";
@@ -44,7 +42,6 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("appointments");
-  const isMobile = useIsMobile();
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
 
   // Split appointments into active and archived
@@ -222,13 +219,31 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       <AdminDashboardStats appointments={activeAppointments} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="archive">Archive</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="activity">Activity Log</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <TabsTrigger value="appointments">
+            <Calendar className="w-4 h-4 mr-2" />
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger value="archive">
+            <Archive className="w-4 h-4 mr-2" />
+            Archive
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </TabsTrigger>
+          <TabsTrigger value="activity">
+            <History className="w-4 h-4 mr-2" />
+            Activity Log
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="w-4 h-4 mr-2" />
+            Notifications
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="appointments" className="space-y-4">

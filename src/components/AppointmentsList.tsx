@@ -81,7 +81,7 @@ const AppointmentsList = ({
               <p className="text-gray-600">No appointments scheduled for this date.</p>
             </div>
           ) : (
-            <ScrollArea className="h-[60vh] pr-4">
+            <ScrollArea className="max-h-[650px] pr-4">
               <div className="space-y-6">
                 {renderSection(
                   "Pending",
