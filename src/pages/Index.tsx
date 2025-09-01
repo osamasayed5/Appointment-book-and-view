@@ -48,7 +48,7 @@ const Index = () => {
   const activeAppointments = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return appointments.filter(app => new Date(app.date) >= today);
+    return appointments.filter(app => new Date(app.date) >= today || app.status === 'follow up');
   }, [appointments]);
 
   const handleFormSave = (data: any) => {
@@ -223,12 +223,12 @@ const Index = () => {
           )
         ) : (
           <Tabs defaultValue="calendar" className="w-full">
-            <div className="flex justify-between items-center mb-4">
-              <TabsList>
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+              <TabsList className="grid grid-cols-2 w-full sm:w-auto">
                 <TabsTrigger value="calendar"><Calendar className="w-4 h-4 mr-2" />Calendar View</TabsTrigger>
                 <TabsTrigger value="list"><List className="w-4 h-4 mr-2" />List View</TabsTrigger>
               </TabsList>
-              <Button onClick={handleNewAppointment}>
+              <Button onClick={handleNewAppointment} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 New Appointment
               </Button>

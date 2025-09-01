@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Search, ListChecks } from "lucide-react";
 import AppointmentCard from "./AppointmentCard";
 import { Appointment } from "@/types";
@@ -60,13 +60,16 @@ const StatusListView = ({ appointments, onAppointmentClick }: StatusListViewProp
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="follow up">Follow Up</TabsTrigger>
-            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+            <TabsList className="inline-flex w-max space-x-2 p-1">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
+              <TabsTrigger value="approved">Approved</TabsTrigger>
+              <TabsTrigger value="follow up">Follow Up</TabsTrigger>
+              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
           <TabsContent value="all" className="mt-4">
             {renderAppointmentList(filterAndSortAppointments(), "No appointments found.")}
           </TabsContent>
