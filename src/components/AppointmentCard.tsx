@@ -1,13 +1,15 @@
-import { Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Appointment } from "@/types";
+import { format } from "date-fns";
 
 interface AppointmentCardProps {
   appointment: Appointment;
   onClick: () => void;
+  showDate?: boolean;
 }
 
-const AppointmentCard = ({ appointment, onClick }: AppointmentCardProps) => {
+const AppointmentCard = ({ appointment, onClick, showDate = false }: AppointmentCardProps) => {
   const getStatusIndicatorClass = (status: string) => {
     switch (status) {
       case 'approved': return 'bg-green-500';
@@ -28,12 +30,16 @@ const AppointmentCard = ({ appointment, onClick }: AppointmentCardProps) => {
     }
   };
 
+  // The date is stored as 'YYYY-MM-DD'. Creating a date object this way avoids timezone issues.
+  const appointmentDate = new Date(`${appointment.date}T00:00:00`);
+
   return (
     <button
       onClick={onClick}
       className="w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        {/* Left side: indicator, avatar, name, service */}
         <div className="flex items-center space-x-3 min-w-0">
           <div className={`w-2 h-10 rounded-full ${getStatusIndicatorClass(appointment.status)} flex-shrink-0`}></div>
           <Avatar className="h-10 w-10">
@@ -44,8 +50,20 @@ const AppointmentCard = ({ appointment, onClick }: AppointmentCardProps) => {
             <p className="text-sm text-gray-500 truncate">{appointment.service}</p>
           </div>
         </div>
-        <div className="flex flex-col items-end flex-shrink-0 ml-4">
-          <p className="font-medium text-gray-700">{appointment.time}</p>
+
+        {/* Right side: date, time, status */}
+        <div className="flex sm:flex-col items-center sm:items-end gap-x-4 sm:gap-x-0 sm:gap-y-1 flex-shrink-0 pl-14 sm:pl-0">
+          <div className="flex items-center text-sm font-medium text-gray-700">
+            {showDate && (
+              <>
+                <Calendar className="w-4 h-4 mr-1.5 text-gray-400" />
+                <span>{format(appointmentDate, "MMM d, yyyy")}</span>
+                <span className="mx-1.5 text-gray-300">|</span>
+              </>
+            )}
+            <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
+            <span>{appointment.time}</span>
+          </div>
           <div className="flex items-center space-x-1 text-xs text-gray-500 capitalize">
             {getStatusIcon(appointment.status)}
             <span>{appointment.status}</span>

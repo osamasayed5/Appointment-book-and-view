@@ -31,7 +31,7 @@ const StatusListView = ({ appointments, onAppointmentClick }: StatusListViewProp
       {apps.length > 0 ? (
         <div className="space-y-2">
           {apps.map(app => (
-            <AppointmentCard key={app.id} appointment={app} onClick={() => onAppointmentClick(app)} />
+            <AppointmentCard key={app.id} appointment={app} onClick={() => onAppointmentClick(app)} showDate={true} />
           ))}
         </div>
       ) : (
