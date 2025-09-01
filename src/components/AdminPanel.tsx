@@ -12,6 +12,7 @@ import { logActivity } from "@/utils/activityLogger";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import AppointmentDetails from "./AppointmentDetails";
 import { Appointment, FormConfig, CustomField } from "@/types";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 // Import modular components
 import AdminHeader from "./admin/AdminHeader";
@@ -219,32 +220,35 @@ const AdminPanel = ({ appointments, onUpdateAppointments, onNewAppointmentClick,
       <AdminDashboardStats appointments={activeAppointments} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <TabsTrigger value="appointments">
-            <Calendar className="w-4 h-4 mr-2" />
-            Appointments
-          </TabsTrigger>
-          <TabsTrigger value="archive">
-            <Archive className="w-4 h-4 mr-2" />
-            Archive
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </TabsTrigger>
-          <TabsTrigger value="activity">
-            <History className="w-4 h-4 mr-2" />
-            Activity Log
-          </TabsTrigger>
-          <TabsTrigger value="notifications">
-            <Bell className="w-4 h-4 mr-2" />
-            Notifications
-          </TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+          <TabsList className="inline-flex w-max space-x-2 p-1">
+            <TabsTrigger value="appointments">
+              <Calendar className="w-4 h-4 mr-2" />
+              Appointments
+            </TabsTrigger>
+            <TabsTrigger value="archive">
+              <Archive className="w-4 h-4 mr-2" />
+              Archive
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </TabsTrigger>
+            <TabsTrigger value="activity">
+              <History className="w-4 h-4 mr-2" />
+              Activity Log
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="w-4 h-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+          </TabsList>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
         <TabsContent value="appointments" className="space-y-4">
           <AppointmentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} dateFilter={dateFilter} onDateFilterChange={setDateFilter} />
