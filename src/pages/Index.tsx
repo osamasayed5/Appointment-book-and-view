@@ -24,6 +24,10 @@ import { useServices } from "@/hooks/useServices";
 import { useFormConfig } from "@/hooks/useFormConfig";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { Appointment } from "@/types";
+import StatusOverview from "@/components/StatusOverview";
+import StatusAppointmentsDialog from "@/components/StatusAppointmentsDialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import AppointmentDetails from "@/components/AppointmentDetails";
 
 const Index = () => {
   const { session, isLoading: isSessionLoading } = useSession();
@@ -37,6 +41,8 @@ const Index = () => {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState<boolean>(false);
   const [isAdminPasscodeVerified, setIsAdminPasscodeVerified] = useState<boolean>(false);
+  const [dialogStatus, setDialogStatus] = useState<"pending" | "follow up" | null>(null);
+  const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
 
   const isRefreshing = appointmentsLoading;
 
@@ -94,6 +100,15 @@ const Index = () => {
   const handlePasscodeCancel = () => {
     setShowAdminPanel(false);
     setIsAdminPasscodeVerified(false);
+  };
+
+  const handleStatusCardClick = (status: "pending" | "follow up") => {
+    setDialogStatus(status);
+  };
+
+  const handleDialogAppointmentClick = (appointment: Appointment) => {
+    setDialogStatus(null);
+    setSelectedAppointmentDetails(appointment);
   };
 
   if (isSessionLoading) {
@@ -211,28 +226,31 @@ const Index = () => {
             />
           )
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
-              <CalendarSidebar
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
-                appointments={appointments}
-              />
-            </div>
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex justify-end">
-                <Button onClick={handleNewAppointment}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Appointment
-                </Button>
+          <>
+            <StatusOverview appointments={appointments} onStatusClick={handleStatusCardClick} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1">
+                <CalendarSidebar
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  appointments={appointments}
+                />
               </div>
-              <AppointmentsList
-                appointments={appointments}
-                selectedDate={selectedDate}
-                customFields={customFields}
-              />
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex justify-end">
+                  <Button onClick={handleNewAppointment}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Appointment
+                  </Button>
+                </div>
+                <AppointmentsList
+                  appointments={appointments}
+                  selectedDate={selectedDate}
+                  customFields={customFields}
+                />
+              </div>
             </div>
-          </div>
+          </>
         )}
       </main>
 
@@ -251,6 +269,33 @@ const Index = () => {
         formConfig={formConfig}
         customFields={customFields}
       />
+
+      <StatusAppointmentsDialog
+        isOpen={!!dialogStatus}
+        onClose={() => setDialogStatus(null)}
+        status={dialogStatus}
+        appointments={appointments.filter(app => app.status === dialogStatus)}
+        onAppointmentClick={handleDialogAppointmentClick}
+      />
+
+      <Sheet open={!!selectedAppointmentDetails} onOpenChange={(isOpen) => !isOpen && setSelectedAppointmentDetails(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {selectedAppointmentDetails && (
+            <>
+              <SheetHeader>
+                <SheetTitle>Appointment Details</SheetTitle>
+                <SheetDescription>
+                  Full details for the selected appointment.
+                </SheetDescription>
+              </SheetHeader>
+              <AppointmentDetails 
+                appointment={selectedAppointmentDetails} 
+                customFields={customFields} 
+              />
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
