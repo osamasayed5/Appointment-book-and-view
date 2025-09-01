@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar, Clock, CheckCircle, RefreshCw, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import AppointmentCard from "./AppointmentCard";
 import AppointmentDetails from "./AppointmentDetails";
 import { Appointment, CustomField } from "@/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface AppointmentsListProps {
   appointments: Appointment[];
@@ -18,19 +19,14 @@ const AppointmentsList = ({
   selectedDate, 
   customFields
 }: AppointmentsListProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const appointmentsPerPage = 10;
 
-  const filteredAppointments = appointments
-    .filter(appointment => 
-      appointment.date === selectedDate
-    );
+  const filteredAppointments = appointments.filter(app => app.date === selectedDate);
 
-  const indexOfLastAppointment = currentPage * appointmentsPerPage;
-  const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
-  const currentAppointments = filteredAppointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
-  const totalPages = Math.ceil(filteredAppointments.length / appointmentsPerPage);
+  const pendingAppointments = filteredAppointments.filter(app => app.status === 'pending').sort((a, b) => a.time.localeCompare(b.time));
+  const approvedAppointments = filteredAppointments.filter(app => app.status === 'approved').sort((a, b) => a.time.localeCompare(b.time));
+  const followUpAppointments = filteredAppointments.filter(app => app.status === 'follow up').sort((a, b) => a.time.localeCompare(b.time));
+  const cancelledAppointments = filteredAppointments.filter(app => app.status === 'cancelled').sort((a, b) => a.time.localeCompare(b.time));
 
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -43,21 +39,39 @@ const AppointmentsList = ({
   const [year, month, day] = selectedDate.split('-').map(Number);
   const selectedDateObj = new Date(year, month - 1, day);
 
+  const renderSection = (title: string, icon: React.ReactNode, appointmentList: Appointment[], emptyMessage: string) => (
+    <div>
+      <div className="flex items-center mb-3">
+        {icon}
+        <h3 className="text-md font-semibold text-gray-800 ml-2">{title} ({appointmentList.length})</h3>
+      </div>
+      {appointmentList.length > 0 ? (
+        <div className="space-y-2">
+          {appointmentList.map((appointment) => (
+            <AppointmentCard
+              key={appointment.id}
+              appointment={appointment}
+              onClick={() => handleAppointmentClick(appointment)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 px-3 py-2">{emptyMessage}</p>
+      )}
+    </div>
+  );
+
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
-                Appointments
-              </CardTitle>
-              <CardDescription>
-                {filteredAppointments.length} appointment(s) on {selectedDateObj.toLocaleDateString()}
-              </CardDescription>
-            </div>
-          </div>
+          <CardTitle className="flex items-center">
+            <Calendar className="w-5 h-5 mr-2" />
+            Appointments for {selectedDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+          </CardTitle>
+          <CardDescription>
+            {filteredAppointments.length} total appointment(s) scheduled for this day.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredAppointments.length === 0 ? (
@@ -67,40 +81,37 @@ const AppointmentsList = ({
               <p className="text-gray-600">No appointments scheduled for this date.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {currentAppointments.map((appointment) => (
-                <AppointmentCard
-                  key={appointment.id}
-                  appointment={appointment}
-                  onClick={() => handleAppointmentClick(appointment)}
-                />
-              ))}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages} ({filteredAppointments.length} total appointments)
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-6">
+                {renderSection(
+                  "Pending",
+                  <Clock className="w-5 h-5 text-yellow-600" />,
+                  pendingAppointments,
+                  "No pending appointments."
+                )}
+                <Separator />
+                {renderSection(
+                  "Approved",
+                  <CheckCircle className="w-5 h-5 text-green-600" />,
+                  approvedAppointments,
+                  "No approved appointments."
+                )}
+                <Separator />
+                {renderSection(
+                  "Needs Follow Up",
+                  <RefreshCw className="w-5 h-5 text-blue-600" />,
+                  followUpAppointments,
+                  "No appointments marked for follow up."
+                )}
+                <Separator />
+                {renderSection(
+                  "Cancelled",
+                  <XCircle className="w-5 h-5 text-red-600" />,
+                  cancelledAppointments,
+                  "No cancelled appointments."
+                )}
+              </div>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
